@@ -3,12 +3,36 @@ import argparse
 import json
 from .Wappalyzer import Wappalyzer, WebPage
 
+"""
+Changelog:
+
+-- 0.1 --
+Initial release
+
+"""
+version = '0.1'
+
 class Tech:
+    """
+    Tech is a modified python-Wappalyzer wrapper.
+    """
     def __init__(self, update: bool = False):
+        """
+        :param update: Download and use the latest ``technologies.json`` file 
+            from `AliasIO/wappalyzer <https://github.com/AliasIO/wappalyzer>`_ repository.  
+        """
         self.update = update
-    
+        
     def analyze(self, url: str) -> str:
+        """
+        Method to analyze a website. 
+        
+        :param url: URL
+        :Return: 
+            `str`. json.dumps of `Wappalyzer.analyze_with_versions_and_categories`.
+        """
         self.url = url
+        print ('Using Wappalyzer')
         wappalyzer = Wappalyzer.latest(update=self.update)
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)

@@ -157,68 +157,6 @@ class WebPage:
         html = await response.text()
         return cls(str(response.url), html=html, headers=response.headers)
 
-class JS:
-    """
-    Simple representation of a web page, decoupled
-    from any particular HTTP library's API.
-
-    Well, except for the class methods that use `requests`
-    or `aiohttp` to create the WebPage.
-
-    This object is designed to be created for each website scanned
-    by python-Wappalyzer. 
-    It will parse the HTML with BeautifulSoup to find <script> and <meta> tags.
-
-    You can create it from manually from HTML with the `WebPage()` method
-    or from the class methods. 
-
-    """
-
-    def __init__(self, url:str, html:str):
-        """
-        Initialize a new WebPage object manually.  
-
-        >>> from Wappalyzer import WebPage
-        >>> w = WebPage('exemple.com',  html='<strong>Hello World</strong>', headers={'Server': 'Apache', })
-
-        :param url: The web page URL.
-        :param html: The web page content (HTML)
-        :param headers: The HTTP response headers
-        """
-        self.url = url
-        self.html = html
-        
-    @classmethod
-    def new_from_url(cls, url: str, **kwargs:Any) -> 'JS':
-        """
-        Constructs a new WebPage object for the URL,
-        using the `requests` module to fetch the HTML.
-
-        >>> from Wappalyzer import WebPage
-        >>> page = WebPage.new_from_url('exemple.com', timeout=5)
-
-        :param url: URL 
-        :param headers: (optional) Dictionary of HTTP Headers to send.
-        :param cookies: (optional) Dict or CookieJar object to send.
-        :param timeout: (optional) How many seconds to wait for the server to send data before giving up. 
-        :param proxies: (optional) Dictionary mapping protocol to the URL of the proxy.
-        :param verify: (optional) Boolean, it controls whether we verify the SSL certificate validity. 
-        :param \*\*kwargs: Any other arguments are passed to `requests.get` method as well. 
-        """
-        response = requests.get(url, **kwargs)
-        return cls.new_from_response(response)
-        
-    @classmethod
-    def new_from_response(cls, response:requests.Response) -> 'JS':
-        """
-        Constructs a new WebPage object for the response,
-        using the `BeautifulSoup` module to parse the HTML.
-
-        :param response: `requests.Response` object
-        """
-        return cls(response.url, html=response.text)
-
-
 class Wappalyzer:
     """
     Python Wappalyzer driver.
@@ -504,7 +442,7 @@ class Wappalyzer:
             # Convert to int for easy adding later
             pattern['confidence'] = int(pattern['confidence'])
         app['confidence'][app_type + ' ' + key + pattern['string']] = pattern['confidence']
-        # Dectect version number
+        # Detect version number
         if 'version' in pattern:
             allmatches = re.findall(pattern['regex'], value)
             for i, matches in enumerate(allmatches):
@@ -526,16 +464,21 @@ class Wappalyzer:
                     elif version not in app['versions']:
                         app['versions'].append(version)
             self._set_app_version(app)
-        elif app_type == 'scripts' and 'js' in app:
-            print (value)
-            self._parse_version_from_html(app, JS.new_from_url(value))
+        elif app_type == 'scripts':
+            version = self._parse_version_from_url(value)
+            if version != '':
+                if 'versions' not in app:
+                    app['versions'] = [version]
+                elif version not in app['versions']:
+                    app['versions'].append(version)
             
-    def _parse_version_from_html(self, app: Dict[str, Any], js_obj: JS) -> None:
-        js_tech = app['js']
-        for js_pattern in js_tech:
-            if 'version' in js_pattern.lower():
-                print (js_pattern)
-        print (app)
+    def _parse_version_from_url(self, value: str) -> str:
+        version = ''
+        ternary = re.search(re.compile('[\d]+\.([\d]+\.?)+', re.I), value)
+        if ternary:
+            version = ternary.group(0)
+        return version
+                            
 
     def _set_app_version(self, app: Dict[str, Any]) -> None:
         """
