@@ -1,3 +1,4 @@
+"""This File is part osint.py program"""
 import aiohttp
 from typing import Callable, Dict, Iterable, List, Mapping, Any, Set
 import json
