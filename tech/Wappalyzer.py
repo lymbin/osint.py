@@ -1,4 +1,6 @@
-"""This File is part osint.py program"""
+# This file is part of osint.py program
+# @lymbin 2021
+
 import aiohttp
 from typing import Callable, Dict, Iterable, List, Mapping, Any, Set
 import json
@@ -14,7 +16,6 @@ from bs4 import BeautifulSoup # type: ignore
 from typing import Union, Optional
 
 logger = logging.getLogger(name="python-Wappalyzer")
-
 
 class WappalyzerError(Exception):
     """
