@@ -1,16 +1,21 @@
-"""This File is part osint.py program"""
-import argparse
+# This file is part of osint.py program
+# @lymbin 2021
+
 import json
+import re
 from .Wappalyzer import Wappalyzer, WebPage
 
 """
 Changelog:
 
+-- 0.2 --
+Added schema definition and setter
+
 -- 0.1 --
 Initial release
 
 """
-version = '0.1'
+version = '0.2'
 
 class Tech:
     """
@@ -23,7 +28,7 @@ class Tech:
         """
         self.update = update
         
-    def analyze(self, url: str) -> str:
+    def analyze(self, url: str):
         """
         Method to analyze a website. 
         
@@ -32,9 +37,13 @@ class Tech:
             `str`. json.dumps of `Wappalyzer.analyze_with_versions_and_categories`.
         """
         self.url = url
+        schema = re.search(re.compile('^(http|https)://', re.I), self.url)
+        if not schema:
+             self.url = 'https://' + self.url
+
         print ('Using Wappalyzer')
         wappalyzer = Wappalyzer.latest(update=self.update)
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
-        return (json.dumps(results))
+        return results
         
