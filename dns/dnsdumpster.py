@@ -34,27 +34,31 @@ class DnsDumpster:
 	filter function for the record tables
 	note: make sure txt records are filtered with record_type=1
 	      this is because it uses different formatting
+          
+    :param table: 
+    :param record_type: 
 	"""
     def _clean_table(self, table, record_type = 0):
         retval = {}
-        if record_type==1:
+        if record_type == 1:
             for idx,tag in enumerate(table.find_all('td')):
                 retval[idx] = tag.string
         for idx, tag in enumerate(table.find_all('td', { 'class': 'col-md-4' })):
             clean_name = tag.text.replace('\n', '')
             clean_ip = tag.a['href'].replace('https://api.hackertarget.com/reverseiplookup/?q=', '')
-            retval[idx] = { 'ip':clean_ip, 'host':clean_name}
+            retval[idx] = { 'ip':clean_ip, 'host':clean_name }
         return retval
 
 
     """
     return information on given target
     this is where all the records are cleaned and stored
+    :param target: URL
+    :param type: type of data to return (default hostsearch - returns only domains and ips)
     """
     def dump(self, target, type: str):
         if type == 'hostsearch':
             return self.hostsearch(target)
-            
         self._get_csrf()
         retval = {}
         data = {"csrfmiddlewaretoken": self.csrftoken, "targetip": target}
@@ -71,6 +75,7 @@ class DnsDumpster:
             return False
     """
     execute host search on hackertarget api
+    :param target: URL
     """
     def hostsearch(self, target):
         try:
@@ -81,6 +86,7 @@ class DnsDumpster:
             return("An error occurred.")
     """
     execute reversedns search on hackertarget api
+    :param target: URL
     """
     def reversedns(self, target):
         try:
@@ -91,6 +97,7 @@ class DnsDumpster:
             return("An error occurred.")
     """
     execute dnslookup on hackertarget api
+    :param target: URL
     """
     def dnslookup(self, target):
         try:
@@ -102,6 +109,7 @@ class DnsDumpster:
     
     """
     grab page links from hackertarget api
+    :param target: URL
     """
     def pagelinks(self, target):
         try:
@@ -113,6 +121,7 @@ class DnsDumpster:
 
     """
     grab returned http headers from page using hackertarget api
+    :param target: URL
     """
     def httpheaders(self, target):
         try:

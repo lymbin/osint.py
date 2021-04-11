@@ -15,7 +15,7 @@ version = '0.1'
 
 class Dns:
     """
-    Dns is a tool for getting dns records
+    Dns is a helpful tool for getting dns records for domains
     """
     def __init__(self):
         self.engines = {
@@ -27,8 +27,9 @@ class Dns:
         Method to get info from dns. 
         
         :param url: URL
+        :param type: type of data to return (default hostsearch - returns only domains and ips)
         :Return: 
-            `str`. json.dumps of `Wappalyzer.analyze_with_versions_and_categories`.
+            `str`. row with all subdomains and ips or dns json
         """
         self.target = target
         results = ''

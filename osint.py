@@ -12,11 +12,18 @@ from helper.parser import parse_from_hostsearch
 version = '0.2'
 
 class Host:
+    """
+    Host is a object with results
+    """
     def __init__(self, target: str):
         self.target = target
         self.info = {}
         self.dns = target + ',' + socket.gethostbyname(self.target)
-    
+        
+    """
+    Parse hostsearch from dns
+    :param data: dns's hostsearch result
+    """
     def hostsearch(self, data: str):
         self.dns = data
         self.info = parse_from_hostsearch(self.dns)
@@ -50,15 +57,17 @@ def main(args) -> None:
             host.hostsearch(host.dns)
         else:
             host.hostsearch(results)
+        print('---------------')
     else:
        host.hostsearch(host.dns)
-        
+    
     if args.all or args.tech:
         for ip in host.info: 
             for host_info in host.info[ip]:
                 print('Getting tech for %s' % (host_info['host']))
                 results = Tech(update=args.update).analyze(host_info['host'])
                 host_info['tech'] = results
+                print('---------------')
     
     print('\nResults:')
     print(host.info)
