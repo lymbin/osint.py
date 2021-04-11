@@ -3,11 +3,24 @@
 
 import argparse
 import json
+import socket
+
 from tech.tech import Tech
 from dns.dns import Dns
+from helper.parser import parse_from_hostsearch
 
 version = '0.2'
 
+class Host:
+    def __init__(self, target: str):
+        self.target = target
+        self.info = {}
+        self.dns = target + ',' + socket.gethostbyname(self.target)
+    
+    def hostsearch(self, data: str):
+        self.dns = data
+        self.info = parse_from_hostsearch(self.dns)
+        
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
     parser.add_argument('url', help='URL to analyze')
@@ -27,16 +40,28 @@ def main(args) -> None:
     print(" osint.py v%s" % (version))
     print('---------------')
     
+    host = Host(args.url)
+    
     if args.all or args.dns:
         print('Getting dns for %s' % (args.url))
         results = Dns().analyze(args.url)
-        print(results)
+        if results == False:
+            print("Error in parsing dns records")
+            host.hostsearch(host.dns)
+        else:
+            host.hostsearch(results)
+    else:
+       host.hostsearch(host.dns)
         
     if args.all or args.tech:
-        print('Getting tech for %s' % (args.url))
-        results = Tech(update=args.update).analyze(args.url)
-        print(results)
-        
+        for ip in host.info: 
+            for host_info in host.info[ip]:
+                print('Getting tech for %s' % (host_info['host']))
+                results = Tech(update=args.update).analyze(host_info['host'])
+                host_info['tech'] = results
+    
+    print('\nResults:')
+    print(host.info)
 
 if __name__ == '__main__':
     main(get_parser().parse_args())

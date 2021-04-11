@@ -51,7 +51,10 @@ class DnsDumpster:
     return information on given target
     this is where all the records are cleaned and stored
     """
-    def dump(self, target):
+    def dump(self, target, type: str):
+        if type == 'hostsearch':
+            return self.hostsearch(target)
+            
         self._get_csrf()
         retval = {}
         data = {"csrfmiddlewaretoken": self.csrftoken, "targetip": target}

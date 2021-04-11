@@ -22,7 +22,7 @@ class Dns:
             'DnsDumpster': DnsDumpster
         }
         
-    def analyze(self, target: str) -> str:
+    def analyze(self, target: str, type = "hostsearch") -> str:
         """
         Method to get info from dns. 
         
@@ -34,6 +34,6 @@ class Dns:
         results = ''
         for engine_name in self.engines.keys():
             print ('Using %s' % (engine_name))
-            results = self.engines[engine_name]().dump(target)
-        return (json.dumps(results))
+            results = self.engines[engine_name]().dump(target, type)
+        return (results)
         

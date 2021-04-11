@@ -28,7 +28,7 @@ class Tech:
         """
         self.update = update
         
-    def analyze(self, url: str) -> str:
+    def analyze(self, url: str):
         """
         Method to analyze a website. 
         
@@ -45,5 +45,5 @@ class Tech:
         wappalyzer = Wappalyzer.latest(update=self.update)
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
-        return (json.dumps(results))
+        return results
         
