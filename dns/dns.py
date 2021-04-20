@@ -26,7 +26,7 @@ class Dns:
         """
         Method to get info from dns. 
         
-        :param url: URL
+        :param target: URL
         :param type: type of data to return (default hostsearch - returns only domains and ips)
         :Return: 
             `str`. row with all subdomains and ips or dns json
