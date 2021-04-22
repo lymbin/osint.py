@@ -13,6 +13,7 @@ from progress.spinner import Spinner
 from tech.tech import Tech
 from dns.dns import Dns
 from banner.grabber import Grabber
+from search.search import Search
 from helper.parser import parse_from_hostsearch
 
 version = '0.3'
@@ -56,6 +57,8 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--dns', action='store_true', help='DNS scan only')
     parser.add_argument('--tech', action='store_true', help='Tech scan only')
     parser.add_argument('--banner', action='store_true', help='Banner grabbing only')
+    parser.add_argument('--search', action='store_true', help='CVE Search only')
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('-o', '--output', type=str, help='File for output')
     
     #tech args
@@ -71,7 +74,7 @@ def main(parser) -> None:
     args = parser.parse_args()
     host = Host(args.url)
     
-    if not args.dns and not args.tech and not args.banner:
+    if not args.dns and not args.tech and not args.banner and not args.search and not args.debug:
         print('No mode selected') 
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -112,6 +115,10 @@ def main(parser) -> None:
                 
                 ip_host['banner'] = results
                 print('\n---------------')
+                
+    if args.all or args.search:
+        search = Search()
+        print(search.cpe_search('cpe:/a:microsoft:office:2011::mac'))    
     
     print('\nResults:')
     print(json.dumps(host.info))
