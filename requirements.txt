@@ -1,6 +1,6 @@
 progress==1.5
-python3_nmap==1.5.0
 requests==2.22.0
 aiohttp==3.7.4.post0
+python3_nmap==1.5.0
 beautifulsoup4==4.9.3
-lxml==4.5.0
+pycvesearch==1.0.1

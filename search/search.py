@@ -12,6 +12,7 @@ Initial release
 """
 version = '0.1'
 
+
 class Search:
     """
     Search CVE in cve-search database for package/version or cpe
@@ -26,4 +27,3 @@ class Search:
 
     def search(self, package: str, version: str) -> str:
         pass
-        
