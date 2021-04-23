@@ -1,7 +1,8 @@
 # This file is part of osint.py program
 # @lymbin 2021
 
-from pycvesearch import CVESearch
+import subprocess
+import os
 from .setup import Configuration
 """
 Changelog:
@@ -11,6 +12,7 @@ Initial release
 
 """
 version = '0.1'
+cve_bin = os.path.join('bin', 'search.py')
 
 
 class Search:
@@ -19,11 +21,9 @@ class Search:
     """
     def __init__(self):
         self.config = Configuration()
-        web_interface = "http://%s:%s"%(self.config.getCVESearch())
-        self.cve = CVESearch(web_interface)
-        
-    def cpe_search(self, cpe: str) -> str:
-        return self.cve.cvefor(cpe)
+
+    def cve_search(self, cve_search_str: str) -> str:
+        pass
 
     def search(self, package: str, version: str) -> str:
         pass
