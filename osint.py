@@ -52,6 +52,8 @@ class Host:
         self.dns = data
         self.info = parse_from_hostsearch(self.dns)
 
+    def gettech(self):
+        pass
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
@@ -125,7 +127,7 @@ def main(parser) -> None:
 
     if args.all or args.search:
         search = Search()
-        print(search.search('jQuery', '2.4.1'))
+        print(search.search('jQuery', '2.1.4'))
 
     print('\nResults:')
     print(json.dumps(host.info))
