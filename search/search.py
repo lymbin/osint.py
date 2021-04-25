@@ -55,6 +55,10 @@ class Search:
         cve_search_path = self.config.get_cve_path()
         result = CveSearch(cve_search_path).search(cve_search_str)
         result = self.parse(result)
+        if not result:
+            print('Nothing found')
+        else:
+            print("Found %d CVEs" % result.count())
         return result
 
     def search(self, package: str, ver: str) -> str:

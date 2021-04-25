@@ -53,7 +53,27 @@ class Host:
         self.info = parse_from_hostsearch(self.dns)
 
     def gettech(self):
-        pass
+        for ip in self.info:
+            for ip_host in self.info[ip]:
+                ip_host['search'] = {}
+                try:
+                    tech = ip_host['tech']
+                    for tec in tech:
+                        ip_host['search'][tec] = {}
+                        ip_host['search'][tec]['version'] = ''
+                        if tech[tec]['versions']:
+                            ip_host['search'][tec]['version'] = tech[tec]['versions'][0]
+                except:
+                    pass
+                try:
+                    banner = ip_host['banner']
+                    for engine in banner:
+                        for port in banner[engine]['ports']:
+                            ip_host['search'][port['service']['product']] = {}
+                            ip_host['search'][port['service']['product']]['version'] = port['service']['version']
+                except:
+                    pass
+
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
@@ -126,8 +146,18 @@ def main(parser) -> None:
                 print('\n---------------')
 
     if args.all or args.search:
+        host.gettech()
         search = Search()
-        print(search.search('jQuery', '2.1.4'))
+        for ip in host.info:
+            for ip_host in host.info[ip]:
+                for tech in ip_host['search']:
+                    tech_ver = ip_host['search'][tech]['version']
+                    if tech_ver != '':
+                        print('Running cve-search for %s:%s' % (tech, tech_ver))
+                        search_result = search.search(tech, tech_ver)
+                        if search_result:
+                            ip_host['search'][tech]['vuln'] = search_result
+        print('---------------')
 
     print('\nResults:')
     print(json.dumps(host.info))
