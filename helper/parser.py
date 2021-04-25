@@ -1,8 +1,6 @@
 # This file is part of osint.py program
 # @lymbin 2021
 
-import json
-
 """
 Changelog:
 
@@ -11,6 +9,7 @@ Initial release
 
 """
 version = '0.1'
+
 
 def parse_from_hostsearch(data: str) -> str:
     """
@@ -36,4 +35,4 @@ def parse_from_hostsearch(data: str) -> str:
         dataset[hosts_data[1]].append({
             'host': hosts_data[0]
         })
-    return dataset   
+    return dataset

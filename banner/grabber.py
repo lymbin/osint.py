@@ -13,17 +13,20 @@ Initial release
 version = '0.1'
 ports = "21,22,80,443"
 
+
 class Grabber:
     """
     Grabber is a banner grabbing tool for getting banner info from top ports
     Uses Nmap and Netcat modules
     """
+
     def __init__(self):
         self.engines = {
             'Nmap': Nmap
         }
-        
-    def grab(self, target: str, mode = "Nmap") -> str:
+        self.target = ""
+
+    def grab(self, target: str, mode="Nmap") -> str:
         """
         Method to grab info from banners.
         As a default uses hard "Nmap" mode. It's a nmap's -sV scan.
@@ -34,9 +37,6 @@ class Grabber:
             `str`. row with banners.
         """
         self.target = target
-        print ('Using %s' % (mode))
-        results = {}
-        results[mode] = {}
-        results[mode] = self.engines[mode]().grab(target, ports)
+        print('Using %s' % mode)
+        results = {mode: self.engines[mode]().grab(target, ports)}
         return results
-        

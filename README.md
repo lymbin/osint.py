@@ -25,3 +25,9 @@ grabber.py uses Nmap -sV for banner grabbing of all domains or subdomains.
 Banner grabbing performs for 21, 22, 80 and 443 ports for now.
 
 This tool constructed over [python3-nmap](https://github.com/nmmapper/python3-nmap) and [netcat.py](https://gist.github.com/leonjza/f35a7252babdf77c8421)(not implemented yet).
+
+## search.py
+
+search.py uses Cve-Search tool for searching CVE for techs and banners.
+
+[cve-search](https://github.com/cve-search/cve-search) need to be installed for use this feature. Also edit /search/config.ini and put path to your cve-search installtrion directory.
