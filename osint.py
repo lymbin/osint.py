@@ -125,7 +125,7 @@ def main(parser) -> None:
 
     if args.all or args.search:
         search = Search()
-        print(search.cpe_search('cpe:/a:microsoft:office:2011::mac'))
+        print(search.search('jQuery', '2.4.1'))
 
     print('\nResults:')
     print(json.dumps(host.info))
