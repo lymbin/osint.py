@@ -56,23 +56,22 @@ class Host:
         for ip in self.info:
             for ip_host in self.info[ip]:
                 ip_host['search'] = {}
-                try:
+                if 'tech' in ip_host:
                     tech = ip_host['tech']
                     for tec in tech:
                         ip_host['search'][tec] = {}
                         ip_host['search'][tec]['version'] = ''
                         if tech[tec]['versions']:
                             ip_host['search'][tec]['version'] = tech[tec]['versions'][0]
-                except:
-                    pass
-                try:
+                if 'banner' in ip_host:
                     banner = ip_host['banner']
                     for engine in banner:
                         for port in banner[engine]['ports']:
-                            ip_host['search'][port['service']['product']] = {}
-                            ip_host['search'][port['service']['product']]['version'] = port['service']['version']
-                except:
-                    pass
+                            if 'product' in port['service']:
+                                ip_host['search'][port['service']['product']] = {}
+                                ip_host['search'][port['service']['product']]['version'] = ''
+                                if 'version' in port['service']:
+                                    ip_host['search'][port['service']['product']]['version'] = port['service']['version']
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -103,7 +102,7 @@ def main(parser) -> None:
     args = parser.parse_args()
     host = Host(args.url)
 
-    if not args.dns and not args.tech and not args.banner and not args.search and not args.debug:
+    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.debug:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)

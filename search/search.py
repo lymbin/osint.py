@@ -58,7 +58,7 @@ class Search:
         if not result:
             print('Nothing found')
         else:
-            print("Found %d CVEs" % result.count())
+            print("Found %d CVE(s)" % len(result))
         return result
 
     def search(self, package: str, ver: str) -> str:
