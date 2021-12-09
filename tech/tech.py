@@ -42,7 +42,7 @@ class Tech:
         self.url = url
         schema = re.search(re.compile('^(http|https)://', re.I), self.url)
         if not schema:
-            self.url = 'https://' + self.url
+            self.url = 'http://' + self.url
 
         print('Using Wappalyzer')
         wappalyzer = Wappalyzer.latest(update=self.update)

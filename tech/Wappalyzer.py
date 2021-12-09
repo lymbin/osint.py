@@ -95,8 +95,18 @@ class WebPage:
         :param verify: (optional) Boolean, it controls whether we verify the SSL certificate validity. 
         :param \*\*kwargs: Any other arguments are passed to `requests.get` method as well. 
         """
-        response = requests.get(url, **kwargs)
-        return cls.new_from_response(response)
+        try:
+            response = requests.get(url, **kwargs)
+            return cls.new_from_response(response)
+        except requests.exceptions.Timeout:
+            # Maybe set up for a retry, or continue in a retry loop
+            return cls(url, html="", headers={'':''})
+        except requests.exceptions.TooManyRedirects:
+            # Tell the user their URL was bad and try a different one
+            return cls(url, html="", headers={'':''})
+        except requests.exceptions.RequestException as e:
+            # catastrophic error. bail.
+            return cls(url, html="", headers={'':''})
 
     @classmethod
     def new_from_response(cls, response: requests.Response) -> 'WebPage':
