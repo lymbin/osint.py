@@ -1,5 +1,5 @@
 # This file is part of osint.py program
-# @lymbin 2021
+# @lymbin 2021-2022
 
 import json
 import logging
@@ -232,102 +232,25 @@ class Wappalyzer:
         inside the package ressource.
 
         :param technologies_file: File path
-        :param update: Download and use the latest ``technologies.json`` file 
-            from `AliasIO/wappalyzer <https://github.com/AliasIO/wappalyzer>`_ repository.  
-        
         """
-        default = pkg_resources.resource_string(__name__, "technologies.json")
+        default_technologies = pkg_resources.resource_string(__name__, "technologies.json")
+        default_categories = pkg_resources.resource_string(__name__, "categories.json")
 
         if technologies_file:
             with open(technologies_file, 'r') as fd:
-                obj = json.load(fd)
-        elif update:
-            should_update = True
-            technologies_file: Optional[pathlib.Path] = None
-            _files = cls._find_files(['HOME', 'APPDATA', ], ['.python-Wappalyzer/technologies.json'])
-            if _files:
-                technologies_file = pathlib.Path(_files.pop())
-                last_modification_time = datetime.fromtimestamp(technologies_file.stat().st_mtime)
-                if datetime.now() - last_modification_time < timedelta(hours=2):
-                    should_update = False
-
-            # Get the lastest file
-            if should_update:
-                try:
-                    lastest_technologies_file = requests.get(
-                        'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/technologies.json')
-                    obj = lastest_technologies_file.json()
-                    technologies_file = pathlib.Path(cls._find_files(
-                        ['HOME', 'APPDATA', ],
-                        ['.python-Wappalyzer/technologies.json'],
-                        create=True
-                    ).pop())
-                    with technologies_file.open('w') as tfile:
-                        tfile.write(lastest_technologies_file.text)
-                    logger.info("python-Wappalyzer technologies.json file updated")
-
-                except Exception as err:  # Or loads default
-                    logger.error(
-                        "Could not download latest Wappalyzer technologies.json file because of error : '{}'. Using "
-                        "default. ".format(
-                            err))
-                    obj = json.loads(default)
-            else:
-                logger.info(
-                    "python-Wappalyzer technologies.json file not updated because already update in the last 24h")
-                with technologies_file.open('r') as tfile:
-                    obj = json.load(tfile)
-
-            logger.info("Using technologies.json file at {}".format(technologies_file.as_posix()))
+                technologies_data = json.load(fd)
         else:
-            obj = json.loads(default)
+            technologies_data = json.loads(default_technologies)
+        categories_data = json.loads(default_categories)
 
-        return cls(categories=obj['categories'], technologies=obj['technologies'])
-
-    @staticmethod
-    def _find_files(
-            env_location: List[str],
-            potential_files: List[str],
-            default_content: str = "",
-            create: bool = False,
-    ) -> List[str]:
-        """Find existent files based on folders name and file names.
-        Arguments:
-        - `env_location`: list of environment variable to use as a base path. Exemple: ['HOME', 'XDG_CONFIG_HOME', 'APPDATA', 'PWD']
-        - `potential_files`: list of filenames. Exemple: ['.myapp/conf.ini',]
-        - `default_content`: Write default content if the file does not exist
-        - `create`: Create the file in the first existing env_location with default content if the file does not exist
-        """
-        potential_paths = []
-        existent_files = []
-
-        env_loc_exists = False
-        # build potential_paths of config file
-        for env_var in env_location:
-            if env_var in os.environ:
-                env_loc_exists = True
-                for file_path in potential_files:
-                    potential_paths.append(os.path.join(os.environ[env_var], file_path))
-        if not env_loc_exists and create:
-            raise RuntimeError(f"Cannot find any of the env locations {env_location}. ")
-        # If file exist, add to list
-        for p in potential_paths:
-            if os.path.isfile(p):
-                existent_files.append(p)
-        # If no file foud and create=True, init new file
-        if len(existent_files) == 0 and create:
-            os.makedirs(os.path.dirname(potential_paths[0]), exist_ok=True)
-            with open(potential_paths[0], "w") as config_file:
-                config_file.write(default_content)
-            existent_files.append(potential_paths[0])
-        return existent_files
+        return cls(categories=categories_data, technologies=technologies_data)
 
     def _prepare_technology(self, technology: Dict[str, Any]) -> None:
         """
         Normalize technology data, preparing it for the detection phase.
         """
         # Ensure these keys' values are lists
-        for key in ['url', 'html', 'scripts', 'implies']:
+        for key in ['url', 'html', 'scriptSrc', 'implies']:
             try:
                 value = technology[key]
             except KeyError:
@@ -354,7 +277,7 @@ class Wappalyzer:
             technology[key] = {k.lower(): v for k, v in list(obj.items())}
 
         # Prepare regular expression patterns
-        for key in ['url', 'html', 'scripts']:
+        for key in ['url', 'html', 'scriptSrc']:
             technology[key] = [self._prepare_pattern(pattern) for pattern in technology[key]]
 
         for key in ['headers', 'meta']:
@@ -415,10 +338,10 @@ class Wappalyzer:
                     self._set_detected_app(app, 'headers', pattern, content, name)
                     has_app = True
 
-        for pattern in technology['scripts']:
+        for pattern in technology['scriptSrc']:
             for script in webpage.scripts:
                 if pattern['regex'].search(script):
-                    self._set_detected_app(app, 'scripts', pattern, script)
+                    self._set_detected_app(app, 'scriptSrc', pattern, script)
                     has_app = True
 
         for name, pattern in list(technology['meta'].items()):
@@ -483,7 +406,7 @@ class Wappalyzer:
                     elif version not in app['versions']:
                         app['versions'].append(version)
             self._set_app_version(app)
-        elif app_type == 'scripts':
+        elif app_type == 'scriptSrc':
             version = self._parse_version_from_url(value)
             if version != '':
                 if 'versions' not in app:
