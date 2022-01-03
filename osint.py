@@ -1,5 +1,5 @@
 # This file is part of osint.py program
-# @lymbin 2021
+# @lymbin 2021-2022
 
 import argparse
 import json
@@ -16,7 +16,7 @@ from banner.grabber import Grabber
 from search.search import Search
 from helper.parser import parse_from_hostsearch
 
-version = '0.4'
+version = '0.5'
 progress_state = 'RUNNING'
 
 
@@ -127,7 +127,7 @@ def main(parser) -> None:
                 ip_host['tech'] = results
                 print('---------------')
 
-    if args.all or args.banner:
+    if args.banner:
         for ip in host.info:
             for ip_host in host.info[ip]:
                 print('Getting banner for %s' % (ip_host['host']))

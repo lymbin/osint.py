@@ -1,12 +1,16 @@
 # This file is part of osint.py program
-# @lymbin 2021
+# @lymbin 2021-2022
 
 import re
 
 from .Wappalyzer import Wappalyzer, WebPage
+from .updater import Updater
 
 """
 Changelog:
+
+-- 0.3 --
+Added function for update file technologies.json
 
 -- 0.2 --
 Added schema definition and setter
@@ -15,7 +19,7 @@ Added schema definition and setter
 Initial release
 
 """
-version = '0.2'
+version = '0.3'
 
 
 class Tech:
@@ -28,7 +32,9 @@ class Tech:
         :param update: Download and use the latest ``technologies.json`` file 
             from `AliasIO/wappalyzer <https://github.com/AliasIO/wappalyzer>`_ repository.  
         """
-        self.update = update
+        if update:
+            Updater.update()
+
         self.url = ""
 
     def analyze(self, url: str):
@@ -42,10 +48,10 @@ class Tech:
         self.url = url
         schema = re.search(re.compile('^(http|https)://', re.I), self.url)
         if not schema:
-            self.url = 'https://' + self.url
+            self.url = 'http://' + self.url
 
         print('Using Wappalyzer')
-        wappalyzer = Wappalyzer.latest(update=self.update)
+        wappalyzer = Wappalyzer.latest()
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
         return results

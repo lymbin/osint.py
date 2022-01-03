@@ -1,5 +1,5 @@
 # This file is part of osint.py program
-# @lymbin 2021
+# @lymbin 2021-2022
 
 """
 Changelog:
@@ -30,9 +30,9 @@ def parse_from_hostsearch(data: str) -> str:
     hosts = data.split('\n')
     for host in hosts:
         hosts_data = host.split(',')
-        if not dataset.get(hosts_data[1]):
+        if len(hosts_data) > 1 and not dataset.get(hosts_data[1]):
             dataset[hosts_data[1]] = []
-        dataset[hosts_data[1]].append({
-            'host': hosts_data[0]
-        })
+            dataset[hosts_data[1]].append({
+                'host': hosts_data[0]
+            })
     return dataset

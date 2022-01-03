@@ -16,15 +16,19 @@ This tool constructed over [dnsdmpstr](https://github.com/zeropwn/dnsdmpstr)
 
 tech.py identifies technologies on websites from headers, meta, body, scripts and javascript code.
 
-This is a custom implementation of [python-Wappalyzer](https://github.com/chorsley/python-Wappalyzer)
+This is a custom implementation of [python-Wappalyzer](https://github.com/chorsley/python-Wappalyzer) with new json updater and modern fixes.
+
+Using technologies from [wappalyzer](https://github.com/AliasIO/wappalyzer)
 
 ## grabber.py
 
-grabber.py uses Nmap -sV for banner grabbing of all domains or subdomains.
+grabber.py uses Nmap -sV and Netcat for banner grabbing of all domains or subdomains.
+
+grabber.py removed from --all
 
 Banner grabbing performs for 21, 22, 80 and 443 ports for now.
 
-This tool constructed over [python3-nmap](https://github.com/nmmapper/python3-nmap) and [netcat.py](https://gist.github.com/leonjza/f35a7252babdf77c8421)(not implemented yet).
+This tool constructed over [python3-nmap](https://github.com/nmmapper/python3-nmap) and [netcat.py](https://gist.github.com/leonjza/f35a7252babdf77c8421).
 
 ## search.py
 
