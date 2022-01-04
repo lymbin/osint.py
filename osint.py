@@ -16,14 +16,13 @@ from tech.tech import Tech
 from dns.dns import Dns
 from banner.grabber import Grabber
 from search.search import Search
+from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
-from helper.init import init, update, setup
+from helper.packages import init, update, setup
 
 version = '0.6'
 progress_state = 'RUNNING'
 
-thridparty_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'thirdparty')
-default_search_path = os.path.join(thridparty_path, 'cve-search')
 
 class Progress(Thread):
     def __init__(self):
@@ -83,19 +82,27 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
     parser.add_argument('url', nargs='?', help='URL to analyze')
 
-    # common args
-    parser.add_argument('--all', action='store_true', help='Full osint for url')
+    # commands args
+    parser.add_argument('-a', '--all', action='store_true', help='Full osint for url')
     parser.add_argument('--dns', action='store_true', help='DNS scan only')
     parser.add_argument('--tech', action='store_true', help='Tech scan only')
     parser.add_argument('--banner', action='store_true', help='Banner grabbing only')
     parser.add_argument('--search', action='store_true', help='CVE Search only')
-    parser.add_argument('--debug', action='store_true', help='Debug mode')
+    parser.add_argument('--exploit', action='store_true', help='Search Exploits only')
+    
+    # searchsploit args
+    parser.add_argument('--cve', type=str, help='CVE')
+    parser.add_argument('-f', '--file', type=str, help='File with CVE list')
+    
+    # output args
     parser.add_argument('-o', '--output', type=str, help='File for output')
     
-    # extra args
+    # helper args
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('--update', action='store_true', help='Use the latest technologies and categories downloaded from the internet. Also updates cve and exploits dbs.')
     parser.add_argument('--init', action='store_true', help='Initial setup for clean installation of cve_search, searchsploit and more')
     parser.add_argument('--setup', action='store_true', help='Automate setup all necessary system packages, like mongodb or redis')
+    parser.add_argument('--force', action='store_true', help='Force init. Removes all git data and download it again.')
     
     return parser
 
@@ -108,14 +115,14 @@ def main(parser) -> None:
 
     args = parser.parse_args()
 
-    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.debug and not args.init and not args.update and not args.setup:
+    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit and not args.debug and not args.init and not args.update and not args.setup:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
 
     if args.setup:
         print('Setup')
-        setup(thridparty_path)
+        setup()
         print('---------------')
 
     if args.init:
@@ -124,7 +131,7 @@ def main(parser) -> None:
         thread = Progress()
         thread.start()
         
-        init(thridparty_path)
+        init(args.force)
         
         progress_state = 'FINISHED'
         thread.join()
@@ -132,7 +139,7 @@ def main(parser) -> None:
         
     if args.update:
         print('Updating')
-        update(thridparty_path)
+        update()
         print('---------------')
         
 
@@ -184,7 +191,7 @@ def main(parser) -> None:
 
     if args.all or args.search:
         host.gettech()
-        search = Search(default_search_path)
+        search = Search()
         for ip in host.info:
             for ip_host in host.info[ip]:
                 for tech in ip_host['search']:
@@ -194,6 +201,12 @@ def main(parser) -> None:
                         search_result = search.search(tech, tech_ver)
                         if search_result:
                             ip_host['search'][tech]['vuln'] = search_result
+        print('---------------')
+        
+    if args.all or args.exploit:
+        sploit = Exploit()
+        if args.cve != '':
+            sploit.search(args.cve)
         print('---------------')
 
     print('\nResults:')

@@ -12,21 +12,24 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(name="python-Updater")
 
-class Updater:
+class TechUpdater:
     """
     Updater is a modified python-Wappalyzer wrapper.
     """
         
     @staticmethod
-    def update():
-        Updater.update_technologies()
-        Updater.update_categories()
+    def update(packages_folder):
+        TechUpdater.update_technologies(packages_folder)
+        TechUpdater.update_categories(packages_folder)
+    
+    def init(packages_folder):
+        pass
         
     @staticmethod
-    def update_technologies():
+    def update_technologies(packages_folder):
         should_update = True
         _files = ''
-        _files = Updater.find('technologies.json', pathlib.Path(__file__).parent.resolve())
+        _files = TechUpdater.find('technologies.json', packages_folder)
         if _files:
             technologies_file = pathlib.Path(_files.pop())
             last_modification_time = datetime.fromtimestamp(technologies_file.stat().st_mtime)
@@ -35,7 +38,7 @@ class Updater:
 
         # Get the lastest file
         if should_update:
-            temp_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), 'techDir')
+            temp_dir = os.path.join(packages_folder, 'techDir')
             if not os.path.exists(temp_dir):
                 os.mkdir(temp_dir)
             files = []
@@ -55,10 +58,10 @@ class Updater:
                         tfile.write(tech_file.text)
                     files.append(tech_part_file)
                 
-                if os.path.exists(os.path.join(pathlib.Path(__file__).parent.resolve(), 'technologies.json')):
-                    os.remove(os.path.join(pathlib.Path(__file__).parent.resolve(), 'technologies.json')) 
+                if os.path.exists(os.path.join(packages_folder, 'technologies.json')):
+                    os.remove(os.path.join(packages_folder, 'technologies.json')) 
                 
-                Updater.merge_json_files(files, os.path.join(pathlib.Path(__file__).parent.resolve(), 'technologies.json'))
+                TechUpdater.merge_json_files(files, os.path.join(packages_folder, 'technologies.json'))
                 logger.info("python-Updater technologies.json file updated")
 
             except Exception as err:  # Or loads default
@@ -76,10 +79,10 @@ class Updater:
                 
                 
     @staticmethod
-    def update_categories():
+    def update_categories(packages_folder):
         should_update = True
         _files = ''
-        _files = Updater.find('categories.json', pathlib.Path(__file__).parent.resolve())
+        _files = TechUpdater.find('categories.json', packages_folder)
         if _files:
             categories_file = pathlib.Path(_files.pop())
             last_modification_time = datetime.fromtimestamp(categories_file.stat().st_mtime)
@@ -90,9 +93,9 @@ class Updater:
             try:
                 cat_file = requests.get(
                 'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/categories.json')
-                if os.path.exists(os.path.join(pathlib.Path(__file__).parent.resolve(), 'categories.json')):
-                    os.remove(os.path.join(pathlib.Path(__file__).parent.resolve(), 'categories.json')) 
-                with open(os.path.join(pathlib.Path(__file__).parent.resolve(), 'categories.json'), 'w') as tfile:
+                if os.path.exists(os.path.join(packages_folder, 'categories.json')):
+                    os.remove(os.path.join(packages_folder, 'categories.json')) 
+                with open(os.path.join(packages_folder, 'categories.json'), 'w') as tfile:
                     tfile.write(cat_file.text)
                     
                 

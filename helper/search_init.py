@@ -3,8 +3,6 @@
 
 import os
 import git
-import pathlib
-import shutil
 import distro
 
 cve_search_name = 'cve-search'
@@ -57,10 +55,3 @@ def init_cve_search(folder):
     except Exception as e:
         print('Failed to init. Reason: %s' % e)
     
-def update_cve_search(folder):
-    try:
-        db_updater_path = os.path.join(folder, cve_search_name, sbin_name, db_updater)
-        print('Update cve-search database')
-        os.system('%s -v' % db_updater_path)
-    except Exception as e:
-        print('Failed to update. Reason: %s' % e)

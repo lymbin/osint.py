@@ -5,9 +5,14 @@ import subprocess
 import os
 import json
 from .setup import Configuration
+from .search_update import SearchUpdater
 
 """
 Changelog:
+
+-- 0.3 --
+Implements new update method
+Revert 0.2
 
 -- 0.2 --
 Change default path of cve-search
@@ -16,7 +21,7 @@ Change default path of cve-search
 Initial release
 
 """
-version = '0.2'
+version = '0.3'
 cve_bin = os.path.join('bin', 'search.py')
 
 
@@ -37,8 +42,8 @@ class Search:
     """
     Search CVE in cve-search database for package/version or cpe
     """
-    def __init__(self, default_path):
-        self.config = Configuration(default_path)
+    def __init__(self):
+        self.config = Configuration()
 
     def normalize(self, package: str) -> str:
         return package.lower()
@@ -68,4 +73,12 @@ class Search:
     def search(self, package: str, ver: str) -> str:
         cve_search_str = ("%s:%s" % (self.normalize(package), ver))
         return self.cve_search(cve_search_str)
-
+        
+    def update():
+        SearchUpdater.update(os.path.dirname(os.path.realpath(__file__)))
+        
+    def init():
+        SearchUpdater.init(os.path.dirname(os.path.realpath(__file__)))
+    
+    def clear():
+        pass

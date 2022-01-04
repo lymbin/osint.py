@@ -130,3 +130,5 @@ dmypy.json
 
 search/cve-search
 thirdparty/cve-search
+exploit/exploitdb
+exploit/github_exploits

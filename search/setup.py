@@ -8,10 +8,9 @@ runpath = os.path.dirname(os.path.realpath(__file__))
 
 class Configuration:
     cp = configparser.ConfigParser()
-    default = {'local': runpath}
+    default = {'local': os.path.join(runpath, 'cve-search')}
 
-    def __init__(self, default_path, config='config.ini'):
-        self.default['local'] = default_path
+    def __init__(self, config='config.ini'):
         self.cp.read(os.path.join(runpath, config))
 
     @classmethod

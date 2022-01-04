@@ -2,11 +2,17 @@
 # @lymbin 2021-2022
 
 import re
+import os
 
 from .Wappalyzer import Wappalyzer, WebPage
+from .tech_updater import TechUpdater
 
 """
 Changelog:
+
+-- 0.4 --
+Implements new update method
+Revert 0.3 changes
 
 -- 0.3 --
 Added function for update file technologies.json. Moved to helper
@@ -18,7 +24,7 @@ Added schema definition and setter
 Initial release
 
 """
-version = '0.3'
+version = '0.4'
 
 
 class Tech:
@@ -28,7 +34,7 @@ class Tech:
 
     def __init__(self):
         self.url = ""
-
+        
     def analyze(self, url: str):
         """
         Method to analyze a website. 
@@ -47,3 +53,12 @@ class Tech:
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
         return results
+
+    def update():
+        TechUpdater.update(os.path.dirname(os.path.realpath(__file__)))
+        
+    def init():
+        TechUpdater.init(os.path.dirname(os.path.realpath(__file__)))
+        
+    def clear():
+        pass
