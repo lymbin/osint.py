@@ -4,41 +4,33 @@
 import os
 import configparser
 
-"""
-Changelog:
-
--- 0.1 --
-Initial release
-
-"""
-version = '0.1'
 runpath = os.path.dirname(os.path.realpath(__file__))
-
 
 class Configuration:
     cp = configparser.ConfigParser()
-    default = {'local': os.path.join(runpath, 'cve-search')}
+    default = {'local': runpath}
 
-    def __init__(self, config='config.ini'):
+    def __init__(self, default_path, config='config.ini'):
+        self.default['local'] = default_path
         self.cp.read(os.path.join(runpath, config))
 
     @classmethod
-    def read(cls, section, item, default):
+    def read(self, section, item, default):
         result = default
         try:
             if type(default) == bool:
-                result = cls.cp.getboolean(section, item)
+                result = self.cp.getboolean(section, item)
             elif type(default) == int:
-                result = cls.cp.getint(section, item)
+                result = self.cp.getint(section, item)
             else:
-                result = cls.cp.get(section, item)
+                result = self.cp.get(section, item)
         except:
             pass
         return result
 
     @classmethod
-    def get_cve_path(cls):
-        return cls.read('Local', 'Path', cls.default['local'])
+    def get_cve_path(self):
+        return self.read('Local', 'Path', self.default['local'])
 
 
 def setup(path, update=True):

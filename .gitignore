@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 search/cve-search
+thirdparty/cve-search

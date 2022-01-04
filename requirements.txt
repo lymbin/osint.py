@@ -5,3 +5,5 @@ python3_nmap
 beautifulsoup4
 pycvesearch
 lxml
+git-python
+distro

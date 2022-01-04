@@ -4,13 +4,12 @@
 import re
 
 from .Wappalyzer import Wappalyzer, WebPage
-from .updater import Updater
 
 """
 Changelog:
 
 -- 0.3 --
-Added function for update file technologies.json
+Added function for update file technologies.json. Moved to helper
 
 -- 0.2 --
 Added schema definition and setter
@@ -27,14 +26,7 @@ class Tech:
     Tech is a modified python-Wappalyzer wrapper.
     """
 
-    def __init__(self, update: bool = False):
-        """
-        :param update: Download and use the latest ``technologies.json`` file 
-            from `AliasIO/wappalyzer <https://github.com/AliasIO/wappalyzer>`_ repository.  
-        """
-        if update:
-            Updater.update()
-
+    def __init__(self):
         self.url = ""
 
     def analyze(self, url: str):

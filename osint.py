@@ -6,6 +6,8 @@ import json
 import socket
 import sys
 import time
+import os
+import pathlib
 
 from threading import Thread
 from progress.spinner import Spinner
@@ -15,10 +17,13 @@ from dns.dns import Dns
 from banner.grabber import Grabber
 from search.search import Search
 from helper.parser import parse_from_hostsearch
+from helper.init import init, update, setup
 
-version = '0.5'
+version = '0.6'
 progress_state = 'RUNNING'
 
+thridparty_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'thirdparty')
+default_search_path = os.path.join(thridparty_path, 'cve-search')
 
 class Progress(Thread):
     def __init__(self):
@@ -76,7 +81,7 @@ class Host:
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
-    parser.add_argument('url', help='URL to analyze')
+    parser.add_argument('url', nargs='?', help='URL to analyze')
 
     # common args
     parser.add_argument('--all', action='store_true', help='Full osint for url')
@@ -86,10 +91,12 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--search', action='store_true', help='CVE Search only')
     parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('-o', '--output', type=str, help='File for output')
-
-    # tech args
-    parser.add_argument('--update', action='store_true',
-                        help='Use the latest technologies file downloaded from the internet')
+    
+    # extra args
+    parser.add_argument('--update', action='store_true', help='Use the latest technologies and categories downloaded from the internet. Also updates cve and exploits dbs.')
+    parser.add_argument('--init', action='store_true', help='Initial setup for clean installation of cve_search, searchsploit and more')
+    parser.add_argument('--setup', action='store_true', help='Automate setup all necessary system packages, like mongodb or redis')
+    
     return parser
 
 
@@ -100,13 +107,44 @@ def main(parser) -> None:
     print('---------------')
 
     args = parser.parse_args()
-    host = Host(args.url)
 
-    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.debug:
+    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.debug and not args.init and not args.update and not args.setup:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
 
+    if args.setup:
+        print('Setup')
+        setup(thridparty_path)
+        print('---------------')
+
+    if args.init:
+        print('Initializing')
+        progress_state = 'RUNNING'
+        thread = Progress()
+        thread.start()
+        
+        init(thridparty_path)
+        
+        progress_state = 'FINISHED'
+        thread.join()
+        print('\n---------------')
+        
+    if args.update:
+        print('Updating')
+        update(thridparty_path)
+        print('---------------')
+        
+
+    if not args.url:
+        if args.update or args.init or args.setup:
+            sys.exit(1)
+        print('No URL selected')
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    
+    host = Host(args.url)
+    
     if args.all or args.dns:
         print('Getting dns for %s' % args.url)
         results = Dns().analyze(args.url)
@@ -123,7 +161,7 @@ def main(parser) -> None:
         for ip in host.info:
             for ip_host in host.info[ip]:
                 print('Getting tech for %s' % (ip_host['host']))
-                results = Tech(update=args.update).analyze(ip_host['host'])
+                results = Tech().analyze(ip_host['host'])
                 ip_host['tech'] = results
                 print('---------------')
 
@@ -146,7 +184,7 @@ def main(parser) -> None:
 
     if args.all or args.search:
         host.gettech()
-        search = Search()
+        search = Search(default_search_path)
         for ip in host.info:
             for ip_host in host.info[ip]:
                 for tech in ip_host['search']:

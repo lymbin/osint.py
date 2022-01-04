@@ -5,14 +5,18 @@ import subprocess
 import os
 import json
 from .setup import Configuration
+
 """
 Changelog:
+
+-- 0.2 --
+Change default path of cve-search
 
 -- 0.1 --
 Initial release
 
 """
-version = '0.1'
+version = '0.2'
 cve_bin = os.path.join('bin', 'search.py')
 
 
@@ -33,8 +37,8 @@ class Search:
     """
     Search CVE in cve-search database for package/version or cpe
     """
-    def __init__(self):
-        self.config = Configuration()
+    def __init__(self, default_path):
+        self.config = Configuration(default_path)
 
     def normalize(self, package: str) -> str:
         return package.lower()
