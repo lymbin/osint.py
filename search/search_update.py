@@ -2,7 +2,6 @@
 # @lymbin 2021-2022
 
 import os
-import configparser
 
 cve_search_name = 'cve-search'
 sbin_name = 'sbin'
@@ -12,7 +11,9 @@ db_updater = 'db_updater.py'
 
 cve_search_git_path = 'https://github.com/cve-search/cve-search.git'
 
+
 class SearchUpdater:
+    @staticmethod
     def update(packages_folder):
         if not os.path.exists(os.path.join(packages_folder, cve_search_name)):
             SearchUpdater.init(packages_folder)
@@ -23,6 +24,7 @@ class SearchUpdater:
         except Exception as e:
             print('Failed to update. Reason: %s' % e)
 
+    @staticmethod
     def init(packages_folder):
         try:
             print ("Init cve-search repo")

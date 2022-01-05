@@ -6,8 +6,6 @@ import json
 import socket
 import sys
 import time
-import os
-import pathlib
 
 from threading import Thread
 from progress.spinner import Spinner
@@ -75,7 +73,8 @@ class Host:
                                 ip_host['search'][port['service']['product']] = {}
                                 ip_host['search'][port['service']['product']]['version'] = ''
                                 if 'version' in port['service']:
-                                    ip_host['search'][port['service']['product']]['version'] = port['service']['version']
+                                    ip_host['search'][port['service']['product']]['version'] = port['service'][
+                                        'version']
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -89,21 +88,24 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--banner', action='store_true', help='Banner grabbing only')
     parser.add_argument('--search', action='store_true', help='CVE Search only')
     parser.add_argument('--exploit', action='store_true', help='Search Exploits only')
-    
+
     # searchsploit args
     parser.add_argument('--cve', type=str, help='CVE')
     parser.add_argument('-f', '--file', type=str, help='File with CVE list')
-    
+
     # output args
     parser.add_argument('-o', '--output', type=str, help='File for output')
-    
+
     # helper args
     parser.add_argument('--debug', action='store_true', help='Debug mode')
-    parser.add_argument('--update', action='store_true', help='Use the latest technologies and categories downloaded from the internet. Also updates cve and exploits dbs.')
-    parser.add_argument('--init', action='store_true', help='Initial setup for clean installation of cve_search, searchsploit and more')
-    parser.add_argument('--setup', action='store_true', help='Automate setup all necessary system packages, like mongodb or redis')
+    parser.add_argument('--update', action='store_true',
+                        help='Use the latest technologies and categories downloaded from the internet. Also updates cve and exploits dbs.')
+    parser.add_argument('--init', action='store_true',
+                        help='Initial setup for clean installation of cve_search, searchsploit and more')
+    parser.add_argument('--setup', action='store_true',
+                        help='Automate setup all necessary system packages, like mongodb or redis')
     parser.add_argument('--force', action='store_true', help='Force init. Removes all git data and download it again.')
-    
+
     return parser
 
 
@@ -130,18 +132,17 @@ def main(parser) -> None:
         progress_state = 'RUNNING'
         thread = Progress()
         thread.start()
-        
+
         init(args.force)
-        
+
         progress_state = 'FINISHED'
         thread.join()
         print('\n---------------')
-        
+
     if args.update:
         print('Updating')
         update()
         print('---------------')
-        
 
     if not args.url:
         if args.update or args.init or args.setup:
@@ -149,9 +150,9 @@ def main(parser) -> None:
         print('No URL selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
-    
+
     host = Host(args.url)
-    
+
     if args.all or args.dns:
         print('Getting dns for %s' % args.url)
         results = Dns().analyze(args.url)
@@ -202,7 +203,7 @@ def main(parser) -> None:
                         if search_result:
                             ip_host['search'][tech]['vuln'] = search_result
         print('---------------')
-        
+
     if args.all or args.exploit:
         sploit = Exploit()
         if args.cve != '':

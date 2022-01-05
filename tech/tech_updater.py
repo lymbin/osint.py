@@ -12,19 +12,12 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(name="python-Updater")
 
+
 class TechUpdater:
     """
     Updater is a modified python-Wappalyzer wrapper.
     """
-        
-    @staticmethod
-    def update(packages_folder):
-        TechUpdater.update_technologies(packages_folder)
-        TechUpdater.update_categories(packages_folder)
-    
-    def init(packages_folder):
-        pass
-        
+
     @staticmethod
     def update_technologies(packages_folder):
         should_update = True
@@ -44,23 +37,23 @@ class TechUpdater:
             files = []
             try:
                 tech_file = requests.get(
-                'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/technologies/_.json')
+                    'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/technologies/_.json')
                 tech_part_file = os.path.join(temp_dir, '_.json')
                 with open(tech_part_file, 'w') as tfile:
                     tfile.write(tech_file.text)
                 files.append(tech_part_file)
-                
+
                 for c in ascii_lowercase:
                     tech_file = requests.get(
-                    'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/technologies/%s.json' % (c))
-                    tech_part_file = os.path.join(temp_dir, '%s.json' %(c))
+                        'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/technologies/%s.json' % (c))
+                    tech_part_file = os.path.join(temp_dir, '%s.json' % (c))
                     with open(tech_part_file, 'w') as tfile:
                         tfile.write(tech_file.text)
                     files.append(tech_part_file)
-                
+
                 if os.path.exists(os.path.join(packages_folder, 'technologies.json')):
-                    os.remove(os.path.join(packages_folder, 'technologies.json')) 
-                
+                    os.remove(os.path.join(packages_folder, 'technologies.json'))
+
                 TechUpdater.merge_json_files(files, os.path.join(packages_folder, 'technologies.json'))
                 logger.info("python-Updater technologies.json file updated")
 
@@ -76,8 +69,7 @@ class TechUpdater:
         else:
             logger.info(
                 "python-Updater technologies.json file not updated because already update in the last 24h")
-                
-                
+
     @staticmethod
     def update_categories(packages_folder):
         should_update = True
@@ -88,23 +80,22 @@ class TechUpdater:
             last_modification_time = datetime.fromtimestamp(categories_file.stat().st_mtime)
             if datetime.now() - last_modification_time < timedelta(hours=2):
                 should_update = False
-        
-        if should_update:       
+
+        if should_update:
             try:
                 cat_file = requests.get(
-                'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/categories.json')
+                    'https://raw.githubusercontent.com/AliasIO/wappalyzer/master/src/categories.json')
                 if os.path.exists(os.path.join(packages_folder, 'categories.json')):
-                    os.remove(os.path.join(packages_folder, 'categories.json')) 
+                    os.remove(os.path.join(packages_folder, 'categories.json'))
                 with open(os.path.join(packages_folder, 'categories.json'), 'w') as tfile:
                     tfile.write(cat_file.text)
-                    
-                
+
             except Exception as err:  # Or loads default
                 logger.error(
                     "Could not download latest Wappalyzer technologies.json file because of error : '{}'. Using "
                     "default. ".format(
                         err))
-                
+
     @staticmethod
     def find(name, path):
         result = []
@@ -121,7 +112,15 @@ class TechUpdater:
                 json_file = json.load(infile)
                 for key, value in json_file.items():
                     result[key] = value
-        
+
         with open(filename, 'w') as output_file:
             json.dump(result, output_file, indent=4)
 
+    @staticmethod
+    def update(packages_folder):
+        TechUpdater.update_technologies(packages_folder)
+        TechUpdater.update_categories(packages_folder)
+
+    @staticmethod
+    def init(packages_folder):
+        pass

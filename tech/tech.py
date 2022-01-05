@@ -54,11 +54,14 @@ class Tech:
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
         return results
 
+    @staticmethod
     def update():
         TechUpdater.update(os.path.dirname(os.path.realpath(__file__)))
-        
+
+    @staticmethod
     def init():
         TechUpdater.init(os.path.dirname(os.path.realpath(__file__)))
         
+    @staticmethod
     def clear():
         pass

@@ -4,6 +4,7 @@
 import os
 import shutil
 
+
 def clear_directory(folder):
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -14,5 +15,3 @@ def clear_directory(folder):
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-        
-

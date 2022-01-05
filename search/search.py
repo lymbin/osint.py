@@ -45,10 +45,12 @@ class Search:
     def __init__(self):
         self.config = Configuration()
 
-    def normalize(self, package: str) -> str:
+    @staticmethod
+    def normalize(package: str) -> str:
         return package.lower()
 
-    def parse(self, cve_search_result: str) -> str:
+    @staticmethod
+    def parse(cve_search_result: str) -> str:
         result = []
         for cve_search_result_line in cve_search_result.splitlines():
             vuln = {}
@@ -73,12 +75,15 @@ class Search:
     def search(self, package: str, ver: str) -> str:
         cve_search_str = ("%s:%s" % (self.normalize(package), ver))
         return self.cve_search(cve_search_str)
-        
+
+    @staticmethod
     def update():
         SearchUpdater.update(os.path.dirname(os.path.realpath(__file__)))
-        
+
+    @staticmethod
     def init():
         SearchUpdater.init(os.path.dirname(os.path.realpath(__file__)))
-    
+
+    @staticmethod
     def clear():
         pass

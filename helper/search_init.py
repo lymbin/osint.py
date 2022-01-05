@@ -17,6 +17,7 @@ requirements = 'requirements.txt'
 
 cve_search_git_path = 'https://github.com/cve-search/cve-search.git'
 
+
 def setup_cve_search(thirdparty_folder):
     try:
         git.Git(thirdparty_folder).clone(cve_search_git_path)
@@ -26,6 +27,7 @@ def setup_cve_search(thirdparty_folder):
             print('Auto Setup supports Ubuntu-like systems only for now')
     except Exception as e:
         print('Failed to setup. Reason: %s' % e)
+
 
 def setup_cve_search_ubuntu(thirdparty_folder):
     os.system('xargs sudo apt-get install -y < %s' % os.path.join(thirdparty_folder, cve_search_name, requirements_system))
@@ -38,7 +40,8 @@ def setup_cve_search_ubuntu(thirdparty_folder):
     os.system('sudo systemctl start mongod')
     os.system('sudo systemctl status mongod')
     os.system('sudo systemctl enable mongod')
-    
+
+
 def init_cve_search(folder):
     try:
         git.Git(folder).clone(cve_search_git_path)
@@ -54,4 +57,3 @@ def init_cve_search(folder):
         os.system('%s -c' % db_updater_path)
     except Exception as e:
         print('Failed to init. Reason: %s' % e)
-    

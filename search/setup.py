@@ -6,6 +6,7 @@ import configparser
 
 runpath = os.path.dirname(os.path.realpath(__file__))
 
+
 class Configuration:
     cp = configparser.ConfigParser()
     default = {'local': os.path.join(runpath, 'cve-search')}
@@ -14,22 +15,22 @@ class Configuration:
         self.cp.read(os.path.join(runpath, config))
 
     @classmethod
-    def read(self, section, item, default):
+    def read(cls, section, item, default):
         result = default
         try:
             if type(default) == bool:
-                result = self.cp.getboolean(section, item)
+                result = cls.cp.getboolean(section, item)
             elif type(default) == int:
-                result = self.cp.getint(section, item)
+                result = cls.cp.getint(section, item)
             else:
-                result = self.cp.get(section, item)
+                result = cls.cp.get(section, item)
         except:
             pass
         return result
 
     @classmethod
-    def get_cve_path(self):
-        return self.read('Local', 'Path', self.default['local'])
+    def get_cve_path(cls):
+        return cls.read('Local', 'Path', cls.default['local'])
 
 
 def setup(path, update=True):
