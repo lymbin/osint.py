@@ -50,7 +50,7 @@ class Search:
         return package.lower()
 
     @staticmethod
-    def parse(cve_search_result: str) -> str:
+    def parse(cve_search_result: str):
         result = []
         for cve_search_result_line in cve_search_result.splitlines():
             vuln = {}
@@ -61,7 +61,7 @@ class Search:
             result.append(vuln)     
         return result
 
-    def cve_search(self, cve_search_str: str) -> str:
+    def cve_search(self, cve_search_str: str):
         print('Scanning %s' % cve_search_str)
         cve_search_path = self.config.get_cve_path()
         result = CveSearch(cve_search_path).search(cve_search_str)
@@ -72,7 +72,7 @@ class Search:
             print("Found %d CVE(s)" % len(result))
         return result
 
-    def search(self, package: str, ver: str) -> str:
+    def search(self, package: str, ver: str):
         cve_search_str = ("%s:%s" % (self.normalize(package), ver))
         return self.cve_search(cve_search_str)
 

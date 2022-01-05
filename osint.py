@@ -6,6 +6,7 @@ import json
 import socket
 import sys
 import time
+import re
 
 from threading import Thread
 from progress.spinner import Spinner
@@ -49,7 +50,6 @@ class Host:
     Parse hostsearch from dns
     :param data: dns's hostsearch result
     """
-
     def hostsearch(self, data: str):
         self.dns = data
         self.info = parse_from_hostsearch(self.dns)
@@ -65,6 +65,8 @@ class Host:
                         ip_host['search'][tec]['version'] = ''
                         if tech[tec]['versions']:
                             ip_host['search'][tec]['version'] = tech[tec]['versions'][0]
+                        else:
+                            del ip_host['search'][tec]
                 if 'banner' in ip_host:
                     banner = ip_host['banner']
                     for engine in banner:
@@ -75,6 +77,19 @@ class Host:
                                 if 'version' in port['service']:
                                     ip_host['search'][port['service']['product']]['version'] = port['service'][
                                         'version']
+    """
+    Reformat tech item in json
+    """
+    def reformat_tech(self):
+        for ip in self.info:
+            for ip_host in self.info[ip]:
+                if 'tech' in ip_host:
+                    tech = ip_host['tech']
+                    for tec in tech:
+                        tech[tec]['version'] = ''
+                        if tech[tec]['versions']:
+                            tech[tec]['version'] = tech[tec]['versions'][0]
+                        del tech[tec]['versions']
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -91,7 +106,6 @@ def get_parser() -> argparse.ArgumentParser:
 
     # searchsploit args
     parser.add_argument('--cve', type=str, help='CVE')
-    parser.add_argument('-f', '--file', type=str, help='File with CVE list')
 
     # output args
     parser.add_argument('-o', '--output', type=str, help='File for output')
@@ -167,6 +181,7 @@ def main(parser) -> None:
                 results = Tech().analyze(ip_host['host'])
                 ip_host['tech'] = results
                 print('---------------')
+        host.reformat_tech()
 
     if args.banner:
         for ip in host.info:
@@ -186,23 +201,39 @@ def main(parser) -> None:
                 print('\n---------------')
 
     if args.all or args.search:
-        host.gettech()
-        search = Search()
-        for ip in host.info:
-            for ip_host in host.info[ip]:
-                for tech in ip_host['search']:
-                    tech_ver = ip_host['search'][tech]['version']
-                    if tech_ver != '':
-                        print('Running cve-search for %s:%s' % (tech, tech_ver))
-                        search_result = search.search(tech, tech_ver)
-                        if search_result:
-                            ip_host['search'][tech]['vuln'] = search_result
+        if args.all or args.tech:
+            search = Search()
+            for ip in host.info:
+                for ip_host in host.info[ip]:
+                    for tech in ip_host['tech']:
+                        tech_ver = ip_host['tech'][tech]['version']
+                        if tech_ver != '':
+                            print('Running cve-search for %s:%s' % (tech, tech_ver))
+                            search_result = search.search(tech, tech_ver)
+                            if search_result:
+                                ip_host['tech'][tech]['vulns'] = search_result
+        else:
+            print('Search mode works only with Tech mode together')
         print('---------------')
 
     if args.all or args.exploit:
+        print('Searching exploits')
         sploit = Exploit()
-        if args.cve != '':
-            print(sploit.search(args.cve))
+        if args.all or args.search:
+            for ip in host.info:
+                for ip_host in host.info[ip]:
+                    for tech in ip_host['tech']:
+                        if 'vulns' in tech:
+                            for vuln in tech['vulns']:
+                                if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
+                                    sploit_result = sploit.search(vuln['id'])
+                                    if sploit_result:
+                                        vuln['exploits'] = sploit_result
+        if args.cve is not None:
+            if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
+                print(sploit.search(args.cve))
+            else:
+                print('Wrong CVE format')
         print('---------------')
 
     print('\nResults:')

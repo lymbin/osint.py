@@ -7,4 +7,4 @@ pycvesearch
 lxml
 git-python
 distro
-progressbar
+progressbar2
