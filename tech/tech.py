@@ -10,6 +10,9 @@ from .tech_updater import TechUpdater
 """
 Changelog:
 
+-- 0.5 --
+Implements new method for resolve technology version(need test)
+
 -- 0.4 --
 Implements new update method
 Revert 0.3 changes
@@ -24,7 +27,7 @@ Added schema definition and setter
 Initial release
 
 """
-version = '0.4'
+version = '0.5'
 
 
 class Tech:
@@ -61,7 +64,7 @@ class Tech:
     @staticmethod
     def init():
         TechUpdater.init(os.path.dirname(os.path.realpath(__file__)))
-        
+
     @staticmethod
     def clear():
         pass
