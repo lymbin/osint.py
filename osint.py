@@ -16,7 +16,7 @@ from banner.grabber import Grabber
 from search.search import Search
 from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
-from helper.packages import init, update, setup
+from helper import packages
 
 version = '0.6'
 progress_state = 'RUNNING'
@@ -124,7 +124,7 @@ def main(parser) -> None:
 
     if args.setup:
         print('Setup')
-        setup()
+        packages.setup()
         print('---------------')
 
     if args.init:
@@ -133,7 +133,7 @@ def main(parser) -> None:
         thread = Progress()
         thread.start()
 
-        init(args.force)
+        packages.init(args.force)
 
         progress_state = 'FINISHED'
         thread.join()
@@ -141,7 +141,7 @@ def main(parser) -> None:
 
     if args.update:
         print('Updating')
-        update()
+        packages.update()
         print('---------------')
 
     if not args.url:

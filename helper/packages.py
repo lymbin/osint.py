@@ -1,16 +1,11 @@
 # This file is part of osint.py program
 # @lymbin 2021-2022
 
-import sys
-
-sys.path.append("..")  # Adds higher directory to python modules path.
-
 from tech.tech import Tech
 from exploit.exploit import Exploit
 from search.search import Search
 
-from .search_init import *
-from .common import *
+from .cve_search_setup import CVESearch
 
 """
 Changelog:
@@ -28,8 +23,8 @@ def clear():
     Search.clear()
 
 
-def setup(packages_folder):
-    pass
+def setup():
+    CVESearch.setup()
 
 
 def init(force):
