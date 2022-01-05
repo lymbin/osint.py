@@ -30,6 +30,7 @@ class CVESearch:
 
 def _setup_cve_search_ubuntu(cve_search_folder):
     os.system('xargs sudo apt-get install -y < %s' % os.path.join(cve_search_folder, requirements_system))
+    os.system('sudo pip3 install markupsafe --upgrade')
     os.system('sudo pip3 install -r %s' % os.path.join(cve_search_folder, requirements))
     os.system('wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -')
     os.system('echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list')

@@ -99,7 +99,8 @@ def get_parser() -> argparse.ArgumentParser:
     # helper args
     parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('--update', action='store_true',
-                        help='Use the latest technologies and categories downloaded from the internet. Also updates cve and exploits dbs.')
+                        help='Use the latest technologies and categories downloaded from the internet. '
+                             'Also updates cve and exploits dbs.')
     parser.add_argument('--init', action='store_true',
                         help='Initial setup for clean installation of cve_search, searchsploit and more')
     parser.add_argument('--setup', action='store_true',
@@ -117,7 +118,8 @@ def main(parser) -> None:
 
     args = parser.parse_args()
 
-    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit and not args.debug and not args.init and not args.update and not args.setup:
+    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
+            and not args.debug and not args.init and not args.update and not args.setup:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -129,14 +131,7 @@ def main(parser) -> None:
 
     if args.init:
         print('Initializing')
-        progress_state = 'RUNNING'
-        thread = Progress()
-        thread.start()
-
         packages.init(args.force)
-
-        progress_state = 'FINISHED'
-        thread.join()
         print('\n---------------')
 
     if args.update:
@@ -207,7 +202,7 @@ def main(parser) -> None:
     if args.all or args.exploit:
         sploit = Exploit()
         if args.cve != '':
-            sploit.search(args.cve)
+            print(sploit.search(args.cve))
         print('---------------')
 
     print('\nResults:')
