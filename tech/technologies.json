@@ -12481,6 +12481,26 @@
         "scriptSrc": "foursixty\\.com",
         "website": "https://foursixty.com/"
     },
+    "Fourthwall": {
+        "cats": [
+            6
+        ],
+        "description": "Fourthwall helps to create and launch a branded website.",
+        "icon": "Fourthwall.svg",
+        "js": {
+            "fourthwallTheme": "",
+            "FourthwallAnalytics": ""
+        },
+        "meta": {
+            "version": "^(.+)$\\;version:\\1\\;confidence:0"
+        },
+        "pricing": [
+            "payg"
+        ],
+        "saas": true,
+        "scriptSrc": "\\.fourthwall\\.com",
+        "website": "https://fourthwall.com/"
+    },
     "Foxy.io": {
         "cats": [
             6
@@ -17364,24 +17384,24 @@
         "scriptSrc": "jqtouch.*\\.js",
         "website": "http://jqtouch.com"
     },
-	"jQuery": {
-		"cats": [
-		  59
-		],
-		"cpe": "cpe:/a:jquery:jquery",
-		"description": "jQuery is a JavaScript library which is a free, open-source software designed to simplify HTML DOM tree traversal and manipulation, as well as event handling, CSS animation, and Ajax.",
-		"icon": "jQuery.svg",
-		"js": {
-		  "$.fn.jquery": "([\\d.]+)\\;version:\\1",
-		  "jQuery.fn.jquery": "([\\d.]+)\\;version:\\1"
-		},
-		"scriptSrc": [
-		  "jquery",
-		  "/jquery(?:-(\\d+\\.\\d+\\.\\d+))[/.-]\\;version:\\1",
-		  "/(\\d+\\.\\d+\\.\\d+)/jquery[/.-][^u]\\;version:\\1"
-		],
-		"website": "https://jquery.com"
-	  },
+    "jQuery": {
+        "cats": [
+            59
+        ],
+        "cpe": "cpe:/a:jquery:jquery",
+        "description": "jQuery is a JavaScript library which is a free, open-source software designed to simplify HTML DOM tree traversal and manipulation, as well as event handling, CSS animation, and Ajax.",
+        "icon": "jQuery.svg",
+        "js": {
+            "$.fn.jquery": "([\\d.]+)\\;version:\\1",
+            "jQuery.fn.jquery": "([\\d.]+)\\;version:\\1"
+        },
+        "scriptSrc": [
+            "jquery",
+            "/jquery(?:-(\\d+\\.\\d+\\.\\d+))[/.-]\\;version:\\1",
+            "/(\\d+\\.\\d+\\.\\d+)/jquery[/.-][^u]\\;version:\\1"
+        ],
+        "website": "https://jquery.com"
+    },
     "jQuery CDN": {
         "cats": [
             31

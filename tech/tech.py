@@ -2,15 +2,23 @@
 # @lymbin 2021-2022
 
 import re
+import os
 
 from .Wappalyzer import Wappalyzer, WebPage
-from .updater import Updater
+from .tech_updater import TechUpdater
 
 """
 Changelog:
 
+-- 0.5 --
+Implements new method for resolve technology version(need test)
+
+-- 0.4 --
+Implements new update method
+Revert 0.3 changes
+
 -- 0.3 --
-Added function for update file technologies.json
+Added function for update file technologies.json. Moved to helper
 
 -- 0.2 --
 Added schema definition and setter
@@ -19,7 +27,7 @@ Added schema definition and setter
 Initial release
 
 """
-version = '0.3'
+version = '0.5'
 
 
 class Tech:
@@ -27,16 +35,9 @@ class Tech:
     Tech is a modified python-Wappalyzer wrapper.
     """
 
-    def __init__(self, update: bool = False):
-        """
-        :param update: Download and use the latest ``technologies.json`` file 
-            from `AliasIO/wappalyzer <https://github.com/AliasIO/wappalyzer>`_ repository.  
-        """
-        if update:
-            Updater.update()
-
+    def __init__(self):
         self.url = ""
-
+        
     def analyze(self, url: str):
         """
         Method to analyze a website. 
@@ -55,3 +56,15 @@ class Tech:
         webpage = WebPage.new_from_url(self.url)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
         return results
+
+    @staticmethod
+    def update():
+        TechUpdater.update(os.path.dirname(os.path.realpath(__file__)))
+
+    @staticmethod
+    def init():
+        TechUpdater.init(os.path.dirname(os.path.realpath(__file__)))
+
+    @staticmethod
+    def clear():
+        pass

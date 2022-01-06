@@ -1,17 +1,8 @@
 # This file is part of osint.py program
 # @lymbin 2021-2022
 
-"""
-Changelog:
 
--- 0.1 --
-Initial release
-
-"""
-version = '0.1'
-
-
-def parse_from_hostsearch(data: str) -> str:
+def parse_from_hostsearch(data: str):
     """
     Constructs a new WebPage object for the response,
     using the `BeautifulSoup` module to parse the HTML.

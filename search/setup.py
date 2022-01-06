@@ -4,14 +4,6 @@
 import os
 import configparser
 
-"""
-Changelog:
-
--- 0.1 --
-Initial release
-
-"""
-version = '0.1'
 runpath = os.path.dirname(os.path.realpath(__file__))
 
 

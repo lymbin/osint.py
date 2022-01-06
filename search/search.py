@@ -5,14 +5,23 @@ import subprocess
 import os
 import json
 from .setup import Configuration
+from .search_update import SearchUpdater
+
 """
 Changelog:
+
+-- 0.3 --
+Implements new update method
+Revert 0.2
+
+-- 0.2 --
+Change default path of cve-search
 
 -- 0.1 --
 Initial release
 
 """
-version = '0.1'
+version = '0.3'
 cve_bin = os.path.join('bin', 'search.py')
 
 
@@ -36,10 +45,12 @@ class Search:
     def __init__(self):
         self.config = Configuration()
 
-    def normalize(self, package: str) -> str:
+    @staticmethod
+    def normalize(package: str) -> str:
         return package.lower()
 
-    def parse(self, cve_search_result: str) -> str:
+    @staticmethod
+    def parse(cve_search_result: str):
         result = []
         for cve_search_result_line in cve_search_result.splitlines():
             vuln = {}
@@ -50,7 +61,7 @@ class Search:
             result.append(vuln)     
         return result
 
-    def cve_search(self, cve_search_str: str) -> str:
+    def cve_search(self, cve_search_str: str):
         print('Scanning %s' % cve_search_str)
         cve_search_path = self.config.get_cve_path()
         result = CveSearch(cve_search_path).search(cve_search_str)
@@ -61,7 +72,18 @@ class Search:
             print("Found %d CVE(s)" % len(result))
         return result
 
-    def search(self, package: str, ver: str) -> str:
+    def search(self, package: str, ver: str):
         cve_search_str = ("%s:%s" % (self.normalize(package), ver))
         return self.cve_search(cve_search_str)
 
+    @staticmethod
+    def update():
+        SearchUpdater.update(os.path.dirname(os.path.realpath(__file__)))
+
+    @staticmethod
+    def init():
+        SearchUpdater.init(os.path.dirname(os.path.realpath(__file__)))
+
+    @staticmethod
+    def clear():
+        pass

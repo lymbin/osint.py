@@ -31,7 +31,7 @@ class Grabber:
         }
         self.target = ""
 
-    def grab(self, target: str, mode="Netcat") -> str:
+    def grab(self, target: str, mode="Netcat"):
         """
         Method to grab info from banners.
         As a default uses "Netcat" mode.
@@ -40,7 +40,7 @@ class Grabber:
         :param target:  target URL
         :param mode:    Grab mode. Can be "Nmap" or "Netcat"
         :Return: 
-            `str`. row with banners.
+            `Dict`. dictionary with banners.
         """
         self.target = target
         print('Using %s' % mode)

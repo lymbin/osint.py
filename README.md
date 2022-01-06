@@ -35,3 +35,11 @@ This tool constructed over [python3-nmap](https://github.com/nmmapper/python3-nm
 search.py uses Cve-Search tool for searching CVE for techs and banners.
 
 [cve-search](https://github.com/cve-search/cve-search) need to be installed for use this feature. Also edit /search/config.ini and put path to your cve-search installtrion directory.
+
+## exploit.py
+
+exploit.py uses exploitdb and PoC-in-GitHub repos for searching exploits for CVEs.
+
+ExploitDB engine uses modified [cve_searchsploit](https://github.com/andreafioraldi/cve_searchsploit) tool and [exploitdb](https://github.com/offensive-security/exploitdb) repo.
+
+GithubExploits engine uses [PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) repo.

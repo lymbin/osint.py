@@ -45,14 +45,14 @@ class Nmap:
         else:
             return port_result_dict
             
-    def grab(self, target: str, ports="21,22") -> str:
+    def grab(self, target: str, ports="21,22"):
         """
         Nmap's method to grab info from banners.
         
         :param target: target URL 
         :param ports: scan ports
         :Return: 
-            `str`. row with banners.
+            `Dict`. dict with banners.
         """
         self.target = target
         port_scan = "-p {ports} --open".format(ports=ports)

@@ -3,10 +3,7 @@
 
 import json
 import logging
-import os
-import pathlib
 import re
-from datetime import datetime, timedelta
 from typing import Callable, Dict, Iterable, List, Mapping, Any, Set
 from typing import Optional
 
@@ -338,12 +335,6 @@ class Wappalyzer:
                     self._set_detected_app(app, 'headers', pattern, content, name)
                     has_app = True
 
-        for pattern in technology['scriptSrc']:
-            for script in webpage.scripts:
-                if pattern['regex'].search(script):
-                    self._set_detected_app(app, 'scriptSrc', pattern, script)
-                    has_app = True
-
         for name, pattern in list(technology['meta'].items()):
             if name in webpage.meta:
                 content = webpage.meta[name]
@@ -355,6 +346,12 @@ class Wappalyzer:
             if pattern['regex'].search(webpage.html):
                 self._set_detected_app(app, 'html', pattern, webpage.html)
                 has_app = True
+
+        for pattern in technology['scriptSrc']:
+            for script in webpage.scripts:
+                if pattern['regex'].search(script):
+                    self._set_detected_app(app, 'scriptSrc', pattern, script)
+                    has_app = True
 
         # Set total confidence
         if has_app:
@@ -411,8 +408,8 @@ class Wappalyzer:
             if version != '':
                 if 'versions' not in app:
                     app['versions'] = [version]
-                elif version not in app['versions']:
-                    app['versions'].append(version)
+                # elif version not in app['versions']:
+                #    app['versions'].append(version)
 
     @staticmethod
     def _parse_version_from_url(value: str) -> str:

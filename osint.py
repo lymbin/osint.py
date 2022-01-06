@@ -6,6 +6,7 @@ import json
 import socket
 import sys
 import time
+import re
 
 from threading import Thread
 from progress.spinner import Spinner
@@ -14,9 +15,11 @@ from tech.tech import Tech
 from dns.dns import Dns
 from banner.grabber import Grabber
 from search.search import Search
+from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
+from helper import packages
 
-version = '0.5'
+version = '0.6'
 progress_state = 'RUNNING'
 
 
@@ -47,7 +50,6 @@ class Host:
     Parse hostsearch from dns
     :param data: dns's hostsearch result
     """
-
     def hostsearch(self, data: str):
         self.dns = data
         self.info = parse_from_hostsearch(self.dns)
@@ -63,6 +65,8 @@ class Host:
                         ip_host['search'][tec]['version'] = ''
                         if tech[tec]['versions']:
                             ip_host['search'][tec]['version'] = tech[tec]['versions'][0]
+                        else:
+                            del ip_host['search'][tec]
                 if 'banner' in ip_host:
                     banner = ip_host['banner']
                     for engine in banner:
@@ -71,25 +75,52 @@ class Host:
                                 ip_host['search'][port['service']['product']] = {}
                                 ip_host['search'][port['service']['product']]['version'] = ''
                                 if 'version' in port['service']:
-                                    ip_host['search'][port['service']['product']]['version'] = port['service']['version']
+                                    ip_host['search'][port['service']['product']]['version'] = port['service'][
+                                        'version']
+    """
+    Reformat tech item in json
+    """
+    def reformat_tech(self):
+        for ip in self.info:
+            for ip_host in self.info[ip]:
+                if 'tech' in ip_host:
+                    tech = ip_host['tech']
+                    for tec in tech:
+                        tech[tec]['version'] = ''
+                        if tech[tec]['versions']:
+                            tech[tec]['version'] = tech[tec]['versions'][0]
+                        del tech[tec]['versions']
 
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="osint.py")
-    parser.add_argument('url', help='URL to analyze')
+    parser.add_argument('url', nargs='?', help='URL to analyze')
 
-    # common args
-    parser.add_argument('--all', action='store_true', help='Full osint for url')
+    # commands args
+    parser.add_argument('-a', '--all', action='store_true', help='Full osint for url')
     parser.add_argument('--dns', action='store_true', help='DNS scan only')
     parser.add_argument('--tech', action='store_true', help='Tech scan only')
     parser.add_argument('--banner', action='store_true', help='Banner grabbing only')
     parser.add_argument('--search', action='store_true', help='CVE Search only')
-    parser.add_argument('--debug', action='store_true', help='Debug mode')
+    parser.add_argument('--exploit', action='store_true', help='Search Exploits only')
+
+    # searchsploit args
+    parser.add_argument('--cve', type=str, help='CVE')
+
+    # output args
     parser.add_argument('-o', '--output', type=str, help='File for output')
 
-    # tech args
+    # helper args
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('--update', action='store_true',
-                        help='Use the latest technologies file downloaded from the internet')
+                        help='Use the latest technologies and categories downloaded from the internet. '
+                             'Also updates cve and exploits dbs.')
+    parser.add_argument('--init', action='store_true',
+                        help='Initial setup for clean installation of cve_search, searchsploit and more')
+    parser.add_argument('--setup', action='store_true',
+                        help='Automate setup all necessary system packages, like mongodb or redis')
+    parser.add_argument('--force', action='store_true', help='Force init. Removes all git data and download it again.')
+
     return parser
 
 
@@ -100,12 +131,36 @@ def main(parser) -> None:
     print('---------------')
 
     args = parser.parse_args()
-    host = Host(args.url)
 
-    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.debug:
+    if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
+            and not args.debug and not args.init and not args.update and not args.setup:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
+
+    if args.setup:
+        print('Setup')
+        packages.setup()
+        print('---------------')
+
+    if args.init:
+        print('Initializing')
+        packages.init(args.force)
+        print('\n---------------')
+
+    if args.update:
+        print('Updating')
+        packages.update()
+        print('---------------')
+
+    if not args.url:
+        if args.update or args.init or args.setup:
+            sys.exit(1)
+        print('No URL selected')
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    host = Host(args.url)
 
     if args.all or args.dns:
         print('Getting dns for %s' % args.url)
@@ -123,9 +178,10 @@ def main(parser) -> None:
         for ip in host.info:
             for ip_host in host.info[ip]:
                 print('Getting tech for %s' % (ip_host['host']))
-                results = Tech(update=args.update).analyze(ip_host['host'])
+                results = Tech().analyze(ip_host['host'])
                 ip_host['tech'] = results
                 print('---------------')
+        host.reformat_tech()
 
     if args.banner:
         for ip in host.info:
@@ -145,17 +201,39 @@ def main(parser) -> None:
                 print('\n---------------')
 
     if args.all or args.search:
-        host.gettech()
-        search = Search()
-        for ip in host.info:
-            for ip_host in host.info[ip]:
-                for tech in ip_host['search']:
-                    tech_ver = ip_host['search'][tech]['version']
-                    if tech_ver != '':
-                        print('Running cve-search for %s:%s' % (tech, tech_ver))
-                        search_result = search.search(tech, tech_ver)
-                        if search_result:
-                            ip_host['search'][tech]['vuln'] = search_result
+        if args.all or args.tech:
+            search = Search()
+            for ip in host.info:
+                for ip_host in host.info[ip]:
+                    for tech in ip_host['tech']:
+                        tech_ver = ip_host['tech'][tech]['version']
+                        if tech_ver != '':
+                            print('Running cve-search for %s:%s' % (tech, tech_ver))
+                            search_result = search.search(tech, tech_ver)
+                            if search_result:
+                                ip_host['tech'][tech]['vulns'] = search_result
+        else:
+            print('Search mode works only with Tech mode together')
+        print('---------------')
+
+    if args.all or args.exploit:
+        print('Searching exploits')
+        sploit = Exploit()
+        if args.all or args.search:
+            for ip in host.info:
+                for ip_host in host.info[ip]:
+                    for tech in ip_host['tech']:
+                        if 'vulns' in tech:
+                            for vuln in tech['vulns']:
+                                if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
+                                    sploit_result = sploit.search(vuln['id'])
+                                    if sploit_result:
+                                        vuln['exploits'] = sploit_result
+        if args.cve is not None:
+            if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
+                print(sploit.search(args.cve))
+            else:
+                print('Wrong CVE format')
         print('---------------')
 
     print('\nResults:')
