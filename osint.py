@@ -10,6 +10,7 @@ import re
 
 from threading import Thread
 from progress.spinner import Spinner
+from urllib.parse import urlparse
 
 from tech.tech import Tech
 from dns.dns import Dns
@@ -19,7 +20,7 @@ from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
 from helper import packages
 
-version = '0.6'
+version = '0.6.1'
 progress_state = 'RUNNING'
 
 
@@ -42,9 +43,16 @@ class Host:
     """
 
     def __init__(self, target: str):
-        self.target = target
+        netloc = '{uri.netloc}'.format(uri=urlparse(target))
+        if netloc != '':
+            self.target = netloc
+        else:
+            self.target = '{uri.path}'.format(uri=urlparse(target))
         self.info = {}
-        self.dns = target + ',' + socket.gethostbyname(self.target)
+        try:
+            self.dns = self.target + ',' + socket.gethostbyname(self.target)
+        except Exception as e:
+            print('Failed to gethostbyname. Reason: %s' % e)
 
     """
     Parse hostsearch from dns
@@ -55,41 +63,38 @@ class Host:
         self.info = parse_from_hostsearch(self.dns)
 
     def gettech(self):
-        for ip in self.info:
-            for ip_host in self.info[ip]:
-                ip_host['search'] = {}
-                if 'tech' in ip_host:
-                    tech = ip_host['tech']
-                    for tec in tech:
-                        ip_host['search'][tec] = {}
-                        ip_host['search'][tec]['version'] = ''
-                        if tech[tec]['versions']:
-                            ip_host['search'][tec]['version'] = tech[tec]['versions'][0]
-                        else:
-                            del ip_host['search'][tec]
-                if 'banner' in ip_host:
-                    banner = ip_host['banner']
-                    for engine in banner:
-                        for port in banner[engine]['ports']:
-                            if 'product' in port['service']:
-                                ip_host['search'][port['service']['product']] = {}
-                                ip_host['search'][port['service']['product']]['version'] = ''
-                                if 'version' in port['service']:
-                                    ip_host['search'][port['service']['product']]['version'] = port['service'][
-                                        'version']
+        for hostname in self.info:
+            self.info[hostname]['search'] = {}
+            if 'tech' in self.info[hostname]:
+                for tech in self.info[hostname]['tech']:
+                    self.info[hostname]['search'][tech] = {}
+                    self.info[hostname]['search'][tech]['version'] = ''
+                    if tech['versions']:
+                        self.info[hostname]['search'][tech]['version'] = tech['versions'][0]
+                    else:
+                        del self.info[hostname]['search'][tech]
+            if 'banner' in self.info[hostname]:
+                banner = self.info[hostname]['banner']
+                for engine in banner:
+                    for port in banner[engine]['ports']:
+                        if 'product' in port['service']:
+                            self.info[hostname]['search'][port['service']['product']] = {}
+                            self.info[hostname]['search'][port['service']['product']]['version'] = ''
+                            if 'version' in port['service']:
+                                self.info[hostname]['search'][port['service']['product']]['version'] = port['service'][
+                                    'version']
     """
     Reformat tech item in json
     """
     def reformat_tech(self):
-        for ip in self.info:
-            for ip_host in self.info[ip]:
-                if 'tech' in ip_host:
-                    tech = ip_host['tech']
-                    for tec in tech:
-                        tech[tec]['version'] = ''
-                        if tech[tec]['versions']:
-                            tech[tec]['version'] = tech[tec]['versions'][0]
-                        del tech[tec]['versions']
+        for hostname in self.info:
+            if 'tech' in self.info[hostname]:
+                tech = self.info[hostname]['tech']
+                for tec in tech:
+                    tech[tec]['version'] = ''
+                    if tech[tec]['versions']:
+                        tech[tec]['version'] = tech[tec]['versions'][0]
+                    del tech[tec]['versions']
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -133,7 +138,7 @@ def main(parser) -> None:
     args = parser.parse_args()
 
     if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
-            and not args.debug and not args.init and not args.update and not args.setup:
+            and not args.init and not args.update and not args.setup:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -163,8 +168,8 @@ def main(parser) -> None:
     host = Host(args.url)
 
     if args.all or args.dns:
-        print('Getting dns for %s' % args.url)
-        results = Dns().analyze(args.url)
+        print('Getting dns for %s' % host.target)
+        results = Dns().analyze(host.target)
         if not results:
             print("Error in parsing dns records")
             host.hostsearch(host.dns)
@@ -175,43 +180,42 @@ def main(parser) -> None:
         host.hostsearch(host.dns)
 
     if args.all or args.tech:
-        for ip in host.info:
-            for ip_host in host.info[ip]:
-                print('Getting tech for %s' % (ip_host['host']))
-                results = Tech().analyze(ip_host['host'])
-                ip_host['tech'] = results
-                print('---------------')
+        for hostname in host.info:
+            print('Getting tech for %s' % hostname)
+            results = Tech().analyze(hostname)
+            print(hostname)
+            host.info[hostname]['tech'] = results
+            print('---------------')
         host.reformat_tech()
 
     if args.banner:
-        for ip in host.info:
-            for ip_host in host.info[ip]:
-                print('Getting banner for %s' % (ip_host['host']))
+        for hostname in host.info:
+            print('Getting banner for %s' % hostname)
 
-                progress_state = 'RUNNING'
-                thread = Progress()
-                thread.start()
+            progress_state = 'RUNNING'
+            thread = Progress()
+            thread.start()
 
-                results = Grabber().grab(ip_host['host'])
+            results = Grabber().grab(hostname)
 
-                progress_state = 'FINISHED'
-                thread.join()
+            progress_state = 'FINISHED'
+            thread.join()
 
-                ip_host['banner'] = results
-                print('\n---------------')
+            host.info[hostname]['banner'] = results
+            print('\n---------------')
 
     if args.all or args.search:
         if args.all or args.tech:
             search = Search()
-            for ip in host.info:
-                for ip_host in host.info[ip]:
-                    for tech in ip_host['tech']:
-                        tech_ver = ip_host['tech'][tech]['version']
-                        if tech_ver != '':
-                            print('Running cve-search for %s:%s' % (tech, tech_ver))
-                            search_result = search.search(tech, tech_ver)
-                            if search_result:
-                                ip_host['tech'][tech]['vulns'] = search_result
+            for hostname in host.info:
+                tech = host.info[hostname]['tech']
+                for tec in tech:
+                    tech_ver = tech[tec]['version']
+                    if tech_ver != '':
+                        print('Running cve-search for %s:%s' % (tec, tech_ver))
+                        search_result = search.search(tec, tech_ver)
+                        if search_result:
+                            tech[tec]['vulns'] = search_result
         else:
             print('Search mode works only with Tech mode together')
         print('---------------')
@@ -220,15 +224,15 @@ def main(parser) -> None:
         print('Searching exploits')
         sploit = Exploit()
         if args.all or args.search:
-            for ip in host.info:
-                for ip_host in host.info[ip]:
-                    for tech in ip_host['tech']:
-                        if 'vulns' in tech:
-                            for vuln in tech['vulns']:
-                                if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
-                                    sploit_result = sploit.search(vuln['id'])
-                                    if sploit_result:
-                                        vuln['exploits'] = sploit_result
+            for hostname in host.info:
+                tech = host.info[hostname]['tech']
+                for tec in tech:
+                    if 'vulns' in tech[tec]:
+                        for vuln in tech[tec]['vulns']:
+                            if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
+                                sploit_result = sploit.search(vuln['id'])
+                                if sploit_result:
+                                    vuln['exploits'] = sploit_result
         if args.cve is not None:
             if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
                 print(sploit.search(args.cve))

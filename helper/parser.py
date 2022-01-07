@@ -12,8 +12,8 @@ def parse_from_hostsearch(data: str):
         
     return
         {
-            "8.8.8.8": {
-                "google.com" : {}
+            "google.com": {
+                "8.8.8.8" : {}
             }
         }
     """
@@ -22,8 +22,7 @@ def parse_from_hostsearch(data: str):
     for host in hosts:
         hosts_data = host.split(',')
         if len(hosts_data) > 1 and not dataset.get(hosts_data[1]):
-            dataset[hosts_data[1]] = []
-            dataset[hosts_data[1]].append({
-                'host': hosts_data[0]
-            })
+            dataset[hosts_data[0]] = {
+                'ip': hosts_data[1]
+            }
     return dataset
