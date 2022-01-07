@@ -20,7 +20,7 @@ from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
 from helper import packages
 
-version = '0.6.1'
+version = '0.6.2'
 progress_state = 'RUNNING'
 
 
@@ -183,7 +183,6 @@ def main(parser) -> None:
         for hostname in host.info:
             print('Getting tech for %s' % hostname)
             results = Tech().analyze(hostname)
-            print(hostname)
             host.info[hostname]['tech'] = results
             print('---------------')
         host.reformat_tech()
@@ -207,15 +206,23 @@ def main(parser) -> None:
     if args.all or args.search:
         if args.all or args.tech:
             search = Search()
+            search_optimizer = {}
             for hostname in host.info:
                 tech = host.info[hostname]['tech']
                 for tec in tech:
                     tech_ver = tech[tec]['version']
                     if tech_ver != '':
-                        print('Running cve-search for %s:%s' % (tec, tech_ver))
-                        search_result = search.search(tec, tech_ver)
-                        if search_result:
-                            tech[tec]['vulns'] = search_result
+                        search_optimizer_tech_version = '%s v%s' % (tec, tech_ver)
+                        if search_optimizer_tech_version not in search_optimizer:
+                            search_optimizer[search_optimizer_tech_version] = {}
+                            print('Running cve-search for %s:%s' % (tec, tech_ver))
+                            search_result = search.search(tec, tech_ver)
+                            if search_result:
+                                search_optimizer[search_optimizer_tech_version]['search'] = search_result
+                                tech[tec]['vulns'] = search_result
+                        elif 'search' in search_optimizer[search_optimizer_tech_version]:
+                            print('Results of cve-search for %s:%s found' % (tec, tech_ver))
+                            tech[tec]['vulns'] = search_optimizer[search_optimizer_tech_version]['search']
         else:
             print('Search mode works only with Tech mode together')
         print('---------------')
@@ -223,6 +230,7 @@ def main(parser) -> None:
     if args.all or args.exploit:
         print('Searching exploits')
         sploit = Exploit()
+        exploit_optimizer = {}
         if args.all or args.search:
             for hostname in host.info:
                 tech = host.info[hostname]['tech']
@@ -230,9 +238,15 @@ def main(parser) -> None:
                     if 'vulns' in tech[tec]:
                         for vuln in tech[tec]['vulns']:
                             if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
-                                sploit_result = sploit.search(vuln['id'])
-                                if sploit_result:
-                                    vuln['exploits'] = sploit_result
+                                if vuln['id'] not in exploit_optimizer:
+                                    exploit_optimizer[vuln['id']] = {}
+                                    sploit_result = sploit.search(vuln['id'])
+                                    if sploit_result:
+                                        exploit_optimizer[vuln['id']]['search'] = sploit_result
+                                        vuln['exploits'] = sploit_result
+                                elif 'search' in exploit_optimizer[vuln['id']]:
+                                    print('Results of searching exploits for %s found' % vuln['id'])
+                                    vuln['exploits'] = exploit_optimizer[vuln['id']]['search']
         if args.cve is not None:
             if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
                 print(sploit.search(args.cve))
