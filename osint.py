@@ -113,7 +113,8 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--cve', type=str, help='CVE')
 
     # output args
-    parser.add_argument('-o', '--output', type=str, help='File for output')
+    parser.add_argument('--docx', action='store_true', help='Generate docx for output')
+    parser.add_argument('-t', '--template', type=str, default='test', help='Template for docx. Get template name or full path')
 
     # helper args
     parser.add_argument('--debug', action='store_true', help='Debug mode')
