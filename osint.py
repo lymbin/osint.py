@@ -18,7 +18,9 @@ from banner.grabber import Grabber
 from search.search import Search
 from exploit.exploit import Exploit
 from helper.parser import parse_from_hostsearch
+from helper.risk import RiskResolver
 from helper import packages
+
 
 version = '0.6.2'
 progress_state = 'RUNNING'
@@ -48,7 +50,8 @@ class Host:
             self.target = netloc
         else:
             self.target = '{uri.path}'.format(uri=urlparse(target))
-        self.info = {}
+        self.info = {'host': self.target,
+                     'info': {}}
         try:
             self.dns = self.target + ',' + socket.gethostbyname(self.target)
         except Exception as e:
@@ -60,36 +63,37 @@ class Host:
     """
     def hostsearch(self, data: str):
         self.dns = data
-        self.info = parse_from_hostsearch(self.dns)
+        self.info['info'] = parse_from_hostsearch(self.dns)
 
-    def gettech(self):
-        for hostname in self.info:
-            self.info[hostname]['search'] = {}
-            if 'tech' in self.info[hostname]:
-                for tech in self.info[hostname]['tech']:
-                    self.info[hostname]['search'][tech] = {}
-                    self.info[hostname]['search'][tech]['version'] = ''
-                    if tech['versions']:
-                        self.info[hostname]['search'][tech]['version'] = tech['versions'][0]
-                    else:
-                        del self.info[hostname]['search'][tech]
-            if 'banner' in self.info[hostname]:
-                banner = self.info[hostname]['banner']
-                for engine in banner:
-                    for port in banner[engine]['ports']:
-                        if 'product' in port['service']:
-                            self.info[hostname]['search'][port['service']['product']] = {}
-                            self.info[hostname]['search'][port['service']['product']]['version'] = ''
-                            if 'version' in port['service']:
-                                self.info[hostname]['search'][port['service']['product']]['version'] = port['service'][
-                                    'version']
+    def calc_risk(self):
+        if 'risks' in self.info:
+            exploits = 0
+            if 'exploits' in self.info['risks']:
+                exploits = self.info['risks']['exploits']
+            self.info['risk_level'] = RiskResolver.calc_risk(self.info['risks'], exploits)
+
+    def calc_severety(self, vulns):
+        for vuln in vulns:
+            risk_level = RiskResolver.calc_cve_severity(vuln['cvss'])
+            if 'risks' not in self.info:
+                self.info['risks'] = {}
+            if risk_level not in self.info['risks']:
+                self.info['risks'][risk_level] = 1
+            else:
+                self.info['risks'][risk_level] = self.info['risks'][risk_level] + 1
+
+    def found_exploits(self, count):
+        if 'risks' in self.info:
+            self.info['risks']['exploits'] = count
+
     """
     Reformat tech item in json
     """
     def reformat_tech(self):
-        for hostname in self.info:
-            if 'tech' in self.info[hostname]:
-                tech = self.info[hostname]['tech']
+        info = self.info['info']
+        for hostname in info:
+            if 'tech' in info[hostname]:
+                tech = info[hostname]['tech']
                 for tec in tech:
                     tech[tec]['version'] = ''
                     if tech[tec]['versions']:
@@ -181,15 +185,15 @@ def main(parser) -> None:
         host.hostsearch(host.dns)
 
     if args.all or args.tech:
-        for hostname in host.info:
+        for hostname in host.info['info']:
             print('Getting tech for %s' % hostname)
             results = Tech().analyze(hostname)
-            host.info[hostname]['tech'] = results
+            host.info['info'][hostname]['tech'] = results
             print('---------------')
         host.reformat_tech()
 
     if args.banner:
-        for hostname in host.info:
+        for hostname in host.info['info']:
             print('Getting banner for %s' % hostname)
 
             progress_state = 'RUNNING'
@@ -201,15 +205,15 @@ def main(parser) -> None:
             progress_state = 'FINISHED'
             thread.join()
 
-            host.info[hostname]['banner'] = results
+            host.info['info'][hostname]['banner'] = results
             print('\n---------------')
 
     if args.all or args.search:
         if args.all or args.tech:
             search = Search()
             search_optimizer = {}
-            for hostname in host.info:
-                tech = host.info[hostname]['tech']
+            for hostname in host.info['info']:
+                tech = host.info['info'][hostname]['tech']
                 for tec in tech:
                     tech_ver = tech[tec]['version']
                     if tech_ver != '':
@@ -221,9 +225,11 @@ def main(parser) -> None:
                             if search_result:
                                 search_optimizer[search_optimizer_tech_version]['search'] = search_result
                                 tech[tec]['vulns'] = search_result
+                                host.calc_severety(tech[tec]['vulns'])
                         elif 'search' in search_optimizer[search_optimizer_tech_version]:
                             print('Results of cve-search for %s:%s found' % (tec, tech_ver))
                             tech[tec]['vulns'] = search_optimizer[search_optimizer_tech_version]['search']
+                            host.calc_severety(tech[tec]['vulns'])
         else:
             print('Search mode works only with Tech mode together')
         print('---------------')
@@ -232,9 +238,10 @@ def main(parser) -> None:
         print('Searching exploits')
         sploit = Exploit()
         exploit_optimizer = {}
+        exploit_count = 0
         if args.all or args.search:
-            for hostname in host.info:
-                tech = host.info[hostname]['tech']
+            for hostname in host.info['info']:
+                tech = host.info['info'][hostname]['tech']
                 for tec in tech:
                     if 'vulns' in tech[tec]:
                         for vuln in tech[tec]['vulns']:
@@ -245,15 +252,21 @@ def main(parser) -> None:
                                     if sploit_result:
                                         exploit_optimizer[vuln['id']]['search'] = sploit_result
                                         vuln['exploits'] = sploit_result
+                                        exploit_count = exploit_count + len(vuln['exploits'])
                                 elif 'search' in exploit_optimizer[vuln['id']]:
                                     print('Results of searching exploits for %s found' % vuln['id'])
                                     vuln['exploits'] = exploit_optimizer[vuln['id']]['search']
+                                    exploit_count = exploit_count + len(vuln['exploits'])
+            host.found_exploits(exploit_count)
         if args.cve is not None:
             if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
                 print(sploit.search(args.cve))
             else:
                 print('Wrong CVE format')
         print('---------------')
+
+    if args.all or args.search:
+        host.calc_risk()
 
     print('\nResults:')
     print(json.dumps(host.info))

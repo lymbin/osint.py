@@ -34,7 +34,12 @@ class CveSearch:
             cve_search_bin = os.path.join(os.path.realpath(self.path), cve_bin)
         else:
             cve_search_bin = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.path, cve_bin)
-        result = subprocess.run([cve_search_bin, '-p', cpe, '-o', 'json'], stdout=subprocess.PIPE)
+        try:
+            result = subprocess.run([cve_search_bin, '-p', cpe, '-o', 'json'], stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            print("cve-search not found on path: %s. "
+                  "Install cve-search with \"osint.py --init\" command" % cve_search_bin)
+            return ''
         return result.stdout.decode('utf-8')
 
 
@@ -52,13 +57,14 @@ class Search:
     @staticmethod
     def parse(cve_search_result: str):
         result = []
-        for cve_search_result_line in cve_search_result.splitlines():
-            vuln = {}
-            result_json = json.loads(cve_search_result_line)
-            vuln['id'] = result_json['id']
-            vuln['cvss'] = result_json['cvss']
-            # vuln['summary'] = result_json['summary']  
-            result.append(vuln)     
+        if cve_search_result != '':
+            for cve_search_result_line in cve_search_result.splitlines():
+                vuln = {}
+                result_json = json.loads(cve_search_result_line)
+                vuln['id'] = result_json['id']
+                vuln['cvss'] = result_json['cvss']
+                # vuln['summary'] = result_json['summary']
+                result.append(vuln)
         return result
 
     def cve_search(self, cve_search_str: str):
