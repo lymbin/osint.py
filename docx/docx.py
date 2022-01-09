@@ -1,12 +1,7 @@
 # This file is part of osint.py program
 # @lymbin 2021-2022
 
-from docx.shared import Cm
-from docxtpl import DocxTemplate, InlineImage
-from docx.shared import Cm, Inches, Mm, Emu
-import random
-import datetime
-import os
+from .templates.test import TestTemplate
 
 """
 Changelog:
@@ -23,20 +18,14 @@ class Docx:
     Docx used for generate docs from results
     """
     def __init__(self):
-        pass
+        self.templates = {
+            'test': TestTemplate
+        }
         
     def generate(self, template: str, json):
-        path = template
-        if not os.path.isabs(path):
-            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '%s.docx' % template)
-        template = DocxTemplate(path)
-
-        # Declare template variables
-        context = {
-            'title': title,
-            'day': datetime.datetime.now().strftime('%d'),
-            'month': datetime.datetime.now().strftime('%b'),
-            'year': datetime.datetime.now().strftime('%Y'),
-            'risk ': table_contents,
-            'image': image
-        }
+        if template not in self.templates.keys():
+            print("No template with name %s found in templates directory." % template)
+            return
+        else:
+            print('Using template %s' % template)
+            self.templates[template]().generate(template, json)
