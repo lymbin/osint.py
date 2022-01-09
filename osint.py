@@ -17,7 +17,7 @@ from helper.progress import Progress
 from helper import packages
 from docgen.docgen import Docx
 
-version = '0.6.3'
+version = '0.7'
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -37,7 +37,8 @@ def get_parser() -> argparse.ArgumentParser:
 
     # output args
     parser.add_argument('--docx', action='store_true', help='Generate docx for output')
-    parser.add_argument('-t', '--template', type=str, default='test', help='Template for docx. Get template name or full path')
+    parser.add_argument('-t', '--template', type=str, default='test',
+                        help='Template for docx. Get template name or full path')
     parser.add_argument('-o', '--output', type=str, default='', help='File to output')
 
     # helper args

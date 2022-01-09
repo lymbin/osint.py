@@ -43,3 +43,7 @@ exploit.py uses exploitdb and PoC-in-GitHub repos for searching exploits for CVE
 ExploitDB engine uses modified [cve_searchsploit](https://github.com/andreafioraldi/cve_searchsploit) tool and [exploitdb](https://github.com/offensive-security/exploitdb) repo.
 
 GithubExploits engine uses [PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) repo.
+
+## docgen.py
+
+docgen.py uses docx and docxtpl python packages to generating docx with results
