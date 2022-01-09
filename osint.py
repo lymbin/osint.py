@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 import re
+import os
 
 from tech.tech import Tech
 from dns.dns import Dns
@@ -14,7 +15,7 @@ from exploit.exploit import Exploit
 from helper.host import Host
 from helper.progress import Progress
 from helper import packages
-
+from docgen.docgen import Docx
 
 version = '0.6.3'
 
@@ -37,6 +38,7 @@ def get_parser() -> argparse.ArgumentParser:
     # output args
     parser.add_argument('--docx', action='store_true', help='Generate docx for output')
     parser.add_argument('-t', '--template', type=str, default='test', help='Template for docx. Get template name or full path')
+    parser.add_argument('-o', '--output', type=str, default='', help='File to output')
 
     # helper args
     parser.add_argument('--debug', action='store_true', help='Debug mode')
@@ -179,6 +181,13 @@ def main(parser) -> None:
     host.generate_results()
     print('\nResults:')
     print(json.dumps(host.json))
+
+    if args.docx:
+        doc_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), host.target)
+        if not os.path.exists(doc_path):
+            os.mkdir(doc_path)
+        docx = Docx(version, doc_path)
+        docx.generate(args.template, host.json)
 
 
 if __name__ == '__main__':

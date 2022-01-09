@@ -17,10 +17,13 @@ class Docx:
     """
     Docx used for generate docs from results
     """
-    def __init__(self):
+    def __init__(self, ver, path, filename: str = ''):
         self.templates = {
             'test': TestTemplate
         }
+        self.path = path
+        self.filename = filename
+        self.version = ver
         
     def generate(self, template: str, json):
         if template not in self.templates.keys():
@@ -28,4 +31,4 @@ class Docx:
             return
         else:
             print('Using template %s' % template)
-            self.templates[template]().generate(template, json)
+            self.templates[template](self.version, self.path, self.filename).generate(template, json)
