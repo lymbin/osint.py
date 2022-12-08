@@ -2,6 +2,12 @@
 
 This tool is might helpful for osint searches
 
+## Installation
+
+`pip3 install -r requirements.txt`
+
+`osint.py --init`
+
 ## Usage
 
 `osint.py --all google.com`
@@ -46,4 +52,4 @@ GithubExploits engine uses [PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-Gi
 
 ## docgen.py
 
-docgen.py uses docx and docxtpl python packages to generating docx with results
+docgen.py uses jinja2 to generating html with results

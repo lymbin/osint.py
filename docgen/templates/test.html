@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>{{title}}</title>
+<style>
+.inner_tables, 
+.inner_tables td, 
+.inner_tables th,
+.subdomain_table,
+.subdomain_table td,
+.subdomain_table th {
+	border: 2px solid #21A0FF;
+	border-collapse: collapse;
+	padding: 5px;
+}
+.subdomain_table tr:nth-child(odd) {
+	background-color: #00678A;
+	color:#ffffff;
+}
+.subdomain_table tr:nth-child(even) {
+	background-color: #b3ecff;
+}
+.logo {
+	width:100%;
+}
+.critical, .high, .medium, .exploits, .header {
+	color:#ffffff;
+}
+.header {
+	background-color:#00678A;
+}
+.critical {
+	background-color:#ff0000;
+}
+.high {
+	background-color:#cc0000;
+}
+.medium {
+	background-color:#ff6600;
+}
+.exploits {
+	background-color:#333333;
+}
+hr {
+	color: #00678A;
+}
+</style>
+</head>
+<body>
+	<table class="logo">
+		<tr>
+			<td><h1>{{title}}</h1></td>
+			<td style="text-align:right"><IMG src="{{ image }}"></td>
+		</tr>
+	</table>
+	<h3>OSINT Report Date: {{ day }}.{{ month }}.{{ year }}</h3>
+	<hr>
+	<h2>Security Risks</h2>
+	<hr>
+	<table class="inner_tables">
+		<tr>
+			<td colspan="2" class="header">
+				<p><b>{{ risk }} Risk Level</b></p>
+				<p>{{ cve_count }} potential CVE detected</p>
+				{% if exploits %}
+					<p>{{ exploits_count }} potential public exploits found</p>
+				{% endif %}
+			</td>
+			<td rowspan="0"><IMG src="{{ image }}"></td>
+		<tr class="critical">
+			<td>Critical</td>
+			<td>{{ critical_count }}</td>
+		</tr>
+		<tr class="high">
+			<td>High</td>
+			<td>{{ high_count }}</td>
+		</tr>
+		<tr class="medium">
+			<td>Medium</td>
+			<td>{{ medium_count }}</td>
+		</tr>
+		{% if exploits %}
+		<tr class="exploits">
+			<td>Exploits</td>
+			<td>{{ exploits_count }} </td>
+		</tr>
+		{% endif %}
+	</table>	
+	<h2>Technologies</h2>
+	<hr>
+	<table class="inner_tables">
+		<tr>
+			{% for item in all_tech %}
+			<td>{{ item.tech_name }}</td>
+			{% endfor %}
+		</tr>
+	</table>
+	<h2>Subdomains</h2>
+	<hr>
+	<table class="subdomain_table">
+		{% for item in subdomains %}
+		<tr>
+			<td>{{ item.subdomain }}</td>
+			<td>
+				<p>{{ item.subdomain_risk }} Risk</p>
+				<p>{{ item.subdomain_ip }}</p>
+			</td>
+			{% for tech_item in item.all_tech %}
+			<td>{{ tech_item.tech_name }}</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+</body>
+</html>

@@ -10,11 +10,14 @@ from .cve_search_setup import CVESearch
 """
 Changelog:
 
+-- 0.2 --
+Removed setup
+
 -- 0.1 --
 Initial release
 
 """
-version = '0.1'
+version = '0.2'
 
 
 def clear():
@@ -23,16 +26,13 @@ def clear():
     Search.clear()
 
 
-def setup():
-    CVESearch.setup()
-
-
 def init(force):
     if force:
         clear()
     Tech.init()
     Exploit.init()
     Search.init()
+    CVESearch.setup()
 
 
 def update():

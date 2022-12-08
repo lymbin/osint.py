@@ -9,7 +9,7 @@ from .risk import RiskResolver
 
 class Host:
     """
-    Host is a object with results
+    Host is an object with results
     """
 
     def __init__(self, target: str):

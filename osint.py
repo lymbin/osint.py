@@ -15,7 +15,7 @@ from exploit.exploit import Exploit
 from helper.host import Host
 from helper.progress import Progress
 from helper import packages
-from docgen.docgen import Docx
+from docgen.docgen import Html
 
 version = '0.7'
 
@@ -36,9 +36,9 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--cve', type=str, help='CVE')
 
     # output args
-    parser.add_argument('--docx', action='store_true', help='Generate docx for output')
+    parser.add_argument('--report', action='store_true', help='Generate report for output')
     parser.add_argument('-t', '--template', type=str, default='test',
-                        help='Template for docx. Get template name or full path')
+                        help='Template for report(html). Get template name or full path')
     parser.add_argument('-o', '--output', type=str, default='', help='File to output')
 
     # helper args
@@ -48,8 +48,6 @@ def get_parser() -> argparse.ArgumentParser:
                              'Also updates cve and exploits dbs.')
     parser.add_argument('--init', action='store_true',
                         help='Initial setup for clean installation of cve_search, searchsploit and more')
-    parser.add_argument('--setup', action='store_true',
-                        help='Automate setup all necessary system packages, like mongodb or redis')
     parser.add_argument('--force', action='store_true', help='Force init. Removes all git data and download it again.')
 
     return parser
@@ -63,15 +61,10 @@ def main(parser) -> None:
     args = parser.parse_args()
 
     if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
-            and not args.init and not args.update and not args.setup:
+            and not args.init and not args.update:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
-
-    if args.setup:
-        print('Setup')
-        packages.setup()
-        print('---------------')
 
     if args.init:
         print('Initializing')
@@ -84,7 +77,7 @@ def main(parser) -> None:
         print('---------------')
 
     if not args.url:
-        if args.update or args.init or args.setup:
+        if args.update or args.init:
             sys.exit(1)
         print('No URL selected')
         parser.print_help(sys.stderr)
@@ -183,12 +176,12 @@ def main(parser) -> None:
     print('\nResults:')
     print(json.dumps(host.json))
 
-    if args.docx:
+    if args.report:
         doc_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), host.target)
         if not os.path.exists(doc_path):
             os.mkdir(doc_path)
-        docx = Docx(version, doc_path)
-        docx.generate(args.template, host.json)
+        html = Html(version, doc_path)
+        html.generate(args.template, host.json)
 
 
 if __name__ == '__main__':
