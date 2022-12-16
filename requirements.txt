@@ -8,5 +8,3 @@ lxml
 git-python
 distro
 progressbar2
-docx
-docxtpl

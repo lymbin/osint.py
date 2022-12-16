@@ -40,3 +40,6 @@ def _setup_cve_search_ubuntu(cve_search_folder):
     os.system('sudo systemctl start mongod')
     os.system('sudo systemctl status mongod')
     os.system('sudo systemctl enable mongod')
+    os.system("systemctl start redis-server.service")
+    os.system("systemctl enable redis-server.service")
+

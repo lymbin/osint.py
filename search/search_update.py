@@ -27,10 +27,10 @@ class SearchUpdater:
     @staticmethod
     def init(packages_folder):
         try:
-            print ("Init cve-search repo")
+            print("Init cve-search repo")
             if not os.path.exists(os.path.join(packages_folder, cve_search_name)):
                 os.system("cd %s; git clone %s" % (packages_folder, cve_search_git_path))
-            
+
             db_mgmt_cpe_dictionary_path = os.path.join(packages_folder, cve_search_name, sbin_name, db_mgmt_cpe_dictionary)
             db_mgmt_json_path = os.path.join(packages_folder, cve_search_name, sbin_name, db_mgmt_json)
             db_updater_path = os.path.join(packages_folder, cve_search_name, sbin_name, db_updater)

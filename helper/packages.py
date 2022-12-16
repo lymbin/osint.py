@@ -29,10 +29,10 @@ def clear():
 def init(force):
     if force:
         clear()
+    CVESearch.setup()
     Tech.init()
     Exploit.init()
     Search.init()
-    CVESearch.setup()
 
 
 def update():
