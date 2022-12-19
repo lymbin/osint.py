@@ -181,6 +181,7 @@ def main(parser) -> None:
         if not os.path.exists(doc_path):
             os.mkdir(doc_path)
         html = Html(version, doc_path)
+        html.check_path(host.target)
         html.generate(args.template, host.json)
 
 

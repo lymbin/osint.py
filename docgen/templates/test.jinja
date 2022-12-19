@@ -98,18 +98,39 @@ hr {
 	<h2>Subdomains</h2>
 	<hr>
 	<table class="subdomain_table">
-		{% for item in subdomains %}
-		<tr>
-			<td>{{ item.subdomain }}</td>
-			<td>
-				<p>{{ item.subdomain_risk }} Risk</p>
-				<p>{{ item.subdomain_ip }}</p>
-			</td>
-			{% for tech_item in item.all_tech %}
-			<td>{{ tech_item.tech_name }}</td>
-			{% endfor %}
-		</tr>
-		{% endfor %}
+        {% for item in subdomains %}
+            {% if item.all_tech | count > 0 %}
+        <tr>
+            <td rowspan="{{ item.all_tech | count }}">{{ item.subdomain_name }}</td>
+            <td rowspan="{{ item.all_tech | count }}">
+                <p>{{ item.subdomain_risk }} Risk</p>
+                <p>{{ item.subdomain_ip }}</p>
+            </td>
+                {% for tech_item in item.all_tech %}
+                    {% if loop.first %}
+            <td>
+                <p>{{ tech_item.tech_name }}</p>
+            </td>
+        </tr>
+                    {% else %}
+        <tr>
+            <td>
+                <p>{{ tech_item.tech_name }}</p>
+            </td>
+        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+        <tr>
+            <td>{{ item.subdomain_name }}</td>
+            <td>
+                <p>{{ item.subdomain_risk }} Risk</p>
+                <p>{{ item.subdomain_ip }}</p>
+            </td>
+            <td></td>
+        </tr>
+            {% endif %}
+        {% endfor %}
 	</table>
 </body>
 </html>

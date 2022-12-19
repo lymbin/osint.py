@@ -16,7 +16,7 @@ Initial release
 
 """
 version = '0.2'
-
+templates_path = os.path.join(os.path.dirname(__file__),'templates')
 
 class Html:
     """
@@ -29,7 +29,8 @@ class Html:
         self.path = path
         self.filename = filename
         self.version = ver
-        self.env = Environment(loader=FileSystemLoader('templates'))
+        self.env = Environment(loader=FileSystemLoader(templates_path), autoescape = True)
+        self.report = os.path.join(self.path, self.filename)
 
     def check_path(self, host):
         if self.filename == '' or os.path.exists(os.path.join(self.path, self.filename)):
@@ -61,6 +62,7 @@ class Html:
                 )
             subdomains.append(
                 {
+                    'subdomain_name': domain['host'],
                     'subdomain_risk': domain['risk_level']['level'],
                     'subdomain_ip': domain['ip'],
                     'all_tech': tech_domain
@@ -89,8 +91,8 @@ class Html:
 
         # Render automated report
         template = self.env.get_template(self.templates[template_name])
-        print(os.path.join(self.path, self.filename))
         parsed_template = template.render(context)
-        with open(self.filename, "w") as fn:
+        with open(os.path.join(self.path, self.filename), "w") as fn:
             fn.write(parsed_template)
+            print('Report saved to %s' % os.path.join(self.path, self.filename))
 
