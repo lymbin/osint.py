@@ -1,9 +1,10 @@
 # This file is part of osint.py program
 # @lymbin 2021-2022
 
-import os
 import datetime
-from jinja2 import Template, Environment, FileSystemLoader
+import os
+
+from jinja2 import Environment, FileSystemLoader
 
 """
 Changelog:
@@ -16,20 +17,28 @@ Initial release
 
 """
 version = '0.2'
-templates_path = os.path.join(os.path.dirname(__file__),'templates')
+templates_path = os.path.join(os.path.dirname(__file__), 'templates')
+
 
 class Html:
     """
     Html used for generate html from results
     """
-    def __init__(self, ver, path, filename: str = ''):
+    def __init__(self, ver, path, template: str = 'test', filename: str = ''):
         self.templates = {
             'test': 'test.jinja'
         }
+        if template != 'test':
+            tpl = template.split('.', 1)
+            if len(tpl) > 1:
+                self.templates[template] = template
+            else:
+                self.templates[template] = '%s.jinja' % template
+
         self.path = path
         self.filename = filename
         self.version = ver
-        self.env = Environment(loader=FileSystemLoader(templates_path), autoescape = True)
+        self.env = Environment(loader=FileSystemLoader(templates_path), autoescape=True)
         self.report = os.path.join(self.path, self.filename)
 
     def check_path(self, host):

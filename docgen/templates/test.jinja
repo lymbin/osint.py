@@ -8,7 +8,10 @@
 .inner_tables th,
 .subdomain_table,
 .subdomain_table td,
-.subdomain_table th {
+.subdomain_table th
+.tech_table,
+.tech_table td,
+.tech_table th {
 	border: 2px solid #21A0FF;
 	border-collapse: collapse;
 	padding: 5px;
@@ -19,6 +22,14 @@
 }
 .subdomain_table tr:nth-child(even) {
 	background-color: #b3ecff;
+}
+.tech_table tr {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.tech_table td {
+	flex: calc(100% / 13);
 }
 .logo {
 	width:100%;

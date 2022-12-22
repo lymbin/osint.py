@@ -33,11 +33,15 @@ class RiskResolver:
 
     @staticmethod
     def calc_cve_severity(cvss: float) -> str:
-        if cvss >= 9.0:
-            return 'critical'
-        elif 7.0 <= cvss < 9.0:
-            return 'high'
-        elif 4.0 <= cvss < 7.0:
-            return 'medium'
-        elif 0.0 < cvss < 4.0:
+        try:
+            if cvss >= 9.0:
+                return 'critical'
+            elif 7.0 <= cvss < 9.0:
+                return 'high'
+            elif 4.0 <= cvss < 7.0:
+                return 'medium'
+            elif 0.0 < cvss < 4.0:
+                return 'low'
+        except TypeError:
             return 'low'
+
