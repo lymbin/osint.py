@@ -3,98 +3,21 @@
 
 import argparse
 import json
-import socket
 import sys
-import time
 import re
-
-from threading import Thread
-from progress.spinner import Spinner
-from urllib.parse import urlparse
+import os
 
 from tech.tech import Tech
 from dns.dns import Dns
 from banner.grabber import Grabber
 from search.search import Search
 from exploit.exploit import Exploit
-from helper.parser import parse_from_hostsearch
+from helper.host import Host
+from helper.progress import Progress
 from helper import packages
+from docgen.docgen import Html
 
-version = '0.6.1'
-progress_state = 'RUNNING'
-
-
-class Progress(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-
-    def run(self):
-        global progress_state
-        time.sleep(1)
-        spinner = Spinner('Loading ')
-        while progress_state != 'FINISHED':
-            time.sleep(0.1)
-            spinner.next()
-
-
-class Host:
-    """
-    Host is a object with results
-    """
-
-    def __init__(self, target: str):
-        netloc = '{uri.netloc}'.format(uri=urlparse(target))
-        if netloc != '':
-            self.target = netloc
-        else:
-            self.target = '{uri.path}'.format(uri=urlparse(target))
-        self.info = {}
-        try:
-            self.dns = self.target + ',' + socket.gethostbyname(self.target)
-        except Exception as e:
-            print('Failed to gethostbyname. Reason: %s' % e)
-
-    """
-    Parse hostsearch from dns
-    :param data: dns's hostsearch result
-    """
-    def hostsearch(self, data: str):
-        self.dns = data
-        self.info = parse_from_hostsearch(self.dns)
-
-    def gettech(self):
-        for hostname in self.info:
-            self.info[hostname]['search'] = {}
-            if 'tech' in self.info[hostname]:
-                for tech in self.info[hostname]['tech']:
-                    self.info[hostname]['search'][tech] = {}
-                    self.info[hostname]['search'][tech]['version'] = ''
-                    if tech['versions']:
-                        self.info[hostname]['search'][tech]['version'] = tech['versions'][0]
-                    else:
-                        del self.info[hostname]['search'][tech]
-            if 'banner' in self.info[hostname]:
-                banner = self.info[hostname]['banner']
-                for engine in banner:
-                    for port in banner[engine]['ports']:
-                        if 'product' in port['service']:
-                            self.info[hostname]['search'][port['service']['product']] = {}
-                            self.info[hostname]['search'][port['service']['product']]['version'] = ''
-                            if 'version' in port['service']:
-                                self.info[hostname]['search'][port['service']['product']]['version'] = port['service'][
-                                    'version']
-    """
-    Reformat tech item in json
-    """
-    def reformat_tech(self):
-        for hostname in self.info:
-            if 'tech' in self.info[hostname]:
-                tech = self.info[hostname]['tech']
-                for tec in tech:
-                    tech[tec]['version'] = ''
-                    if tech[tec]['versions']:
-                        tech[tec]['version'] = tech[tec]['versions'][0]
-                    del tech[tec]['versions']
+version = '0.7'
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -113,7 +36,10 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--cve', type=str, help='CVE')
 
     # output args
-    parser.add_argument('-o', '--output', type=str, help='File for output')
+    parser.add_argument('--report', action='store_true', help='Generate report for output')
+    parser.add_argument('-t', '--template', type=str, default='test',
+                        help='Template for report(html). Get template name or full path')
+    parser.add_argument('-o', '--output', type=str, default='', help='File to output')
 
     # helper args
     parser.add_argument('--debug', action='store_true', help='Debug mode')
@@ -122,15 +48,12 @@ def get_parser() -> argparse.ArgumentParser:
                              'Also updates cve and exploits dbs.')
     parser.add_argument('--init', action='store_true',
                         help='Initial setup for clean installation of cve_search, searchsploit and more')
-    parser.add_argument('--setup', action='store_true',
-                        help='Automate setup all necessary system packages, like mongodb or redis')
     parser.add_argument('--force', action='store_true', help='Force init. Removes all git data and download it again.')
 
     return parser
 
 
 def main(parser) -> None:
-    global progress_state
     print('---------------')
     print(" osint.py v%s" % version)
     print('---------------')
@@ -138,15 +61,10 @@ def main(parser) -> None:
     args = parser.parse_args()
 
     if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
-            and not args.init and not args.update and not args.setup:
+            and not args.init and not args.update:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
-
-    if args.setup:
-        print('Setup')
-        packages.setup()
-        print('---------------')
 
     if args.init:
         print('Initializing')
@@ -159,7 +77,7 @@ def main(parser) -> None:
         print('---------------')
 
     if not args.url:
-        if args.update or args.init or args.setup:
+        if args.update or args.init:
             sys.exit(1)
         print('No URL selected')
         parser.print_help(sys.stderr)
@@ -183,7 +101,6 @@ def main(parser) -> None:
         for hostname in host.info:
             print('Getting tech for %s' % hostname)
             results = Tech().analyze(hostname)
-            print(hostname)
             host.info[hostname]['tech'] = results
             print('---------------')
         host.reformat_tech()
@@ -192,13 +109,13 @@ def main(parser) -> None:
         for hostname in host.info:
             print('Getting banner for %s' % hostname)
 
-            progress_state = 'RUNNING'
             thread = Progress()
+            thread.state('RUNNING')
             thread.start()
 
             results = Grabber().grab(hostname)
 
-            progress_state = 'FINISHED'
+            thread.state('FINISHED')
             thread.join()
 
             host.info[hostname]['banner'] = results
@@ -207,15 +124,23 @@ def main(parser) -> None:
     if args.all or args.search:
         if args.all or args.tech:
             search = Search()
+            search_optimizer = {}
             for hostname in host.info:
                 tech = host.info[hostname]['tech']
                 for tec in tech:
                     tech_ver = tech[tec]['version']
                     if tech_ver != '':
-                        print('Running cve-search for %s:%s' % (tec, tech_ver))
-                        search_result = search.search(tec, tech_ver)
-                        if search_result:
-                            tech[tec]['vulns'] = search_result
+                        search_optimizer_tech_version = '%s v%s' % (tec, tech_ver)
+                        if search_optimizer_tech_version not in search_optimizer:
+                            search_optimizer[search_optimizer_tech_version] = {}
+                            print('Running cve-search for %s:%s' % (tec, tech_ver))
+                            search_result = search.search(tec, tech_ver)
+                            if search_result:
+                                search_optimizer[search_optimizer_tech_version]['search'] = search_result
+                                tech[tec]['vulns'] = search_result
+                        elif 'search' in search_optimizer[search_optimizer_tech_version]:
+                            print('Results of cve-search for %s:%s found' % (tec, tech_ver))
+                            tech[tec]['vulns'] = search_optimizer[search_optimizer_tech_version]['search']
         else:
             print('Search mode works only with Tech mode together')
         print('---------------')
@@ -223,16 +148,23 @@ def main(parser) -> None:
     if args.all or args.exploit:
         print('Searching exploits')
         sploit = Exploit()
+        exploit_optimizer = {}
         if args.all or args.search:
             for hostname in host.info:
                 tech = host.info[hostname]['tech']
                 for tec in tech:
-                    if 'vulns' in tech[tec]:
-                        for vuln in tech[tec]['vulns']:
-                            if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
+                    for vuln in tech[tec]['vulns']:
+                        vuln['exploits'] = {}
+                        if re.match(r'CVE-\d{4}-\d{4,7}', vuln['id']):
+                            if vuln['id'] not in exploit_optimizer:
+                                exploit_optimizer[vuln['id']] = {}
                                 sploit_result = sploit.search(vuln['id'])
                                 if sploit_result:
+                                    exploit_optimizer[vuln['id']]['search'] = sploit_result
                                     vuln['exploits'] = sploit_result
+                            elif 'search' in exploit_optimizer[vuln['id']]:
+                                print('Results of searching exploits for %s found' % vuln['id'])
+                                vuln['exploits'] = exploit_optimizer[vuln['id']]['search']
         if args.cve is not None:
             if re.match(r'CVE-\d{4}-\d{4,7}', args.cve):
                 print(sploit.search(args.cve))
@@ -240,8 +172,17 @@ def main(parser) -> None:
                 print('Wrong CVE format')
         print('---------------')
 
+    host.generate_results()
     print('\nResults:')
-    print(json.dumps(host.info))
+    print(json.dumps(host.json))
+
+    if args.report:
+        doc_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), host.target)
+        if not os.path.exists(doc_path):
+            os.mkdir(doc_path)
+        html = Html(version, doc_path, args.template)
+        html.check_path(host.target)
+        html.generate(args.template, host.json)
 
 
 if __name__ == '__main__':
