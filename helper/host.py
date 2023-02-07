@@ -96,14 +96,32 @@ class Host:
 
         self.json['risk_level'] = self.calc_risk(self.json['risks'], self.json['risks']['exploits'])
 
+    # TODO: optimize later
     def _fill_domain(self, domain, tech):
         for tec in tech:
-            domain['technologies'].append(
-                {
-                    'name': tec,
-                    'version': tech[tec]['version']
-                }
-            )
+            cve_list = []
+            if 'vulns' in tech[tec]:
+                for vuln in tech[tec]['vulns']:
+                    cve = {
+                        'id': vuln['id'],
+                        'cvss': vuln['cvss']
+                    }
+                    cve_list.append(cve)
+            if not cve_list:
+                domain['technologies'].append(
+                    {
+                        'name': tec,
+                        'version': tech[tec]['version']
+                    }
+                )
+            else:
+                domain['technologies'].append(
+                    {
+                        'name': tec,
+                        'version': tech[tec]['version'],
+                        'cve_list': cve_list
+                    }
+                )
             if 'vulns' in tech[tec]:
                 for vuln in tech[tec]['vulns']:
                     cve = {
@@ -112,7 +130,8 @@ class Host:
                     }
                     domain['cve_list'].append(cve)
                     severity = self.calc_severety(vuln)
-                    domain['risks'][severity] += 1
+                    if severity != 'unknown':
+                        domain['risks'][severity] += 1
 
                     if 'exploits' in vuln:
                         domain['risks']['exploits'] += len(vuln['exploits'])

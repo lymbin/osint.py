@@ -102,7 +102,11 @@ hr {
 	<table class="inner_tables">
 		<tr>
 			{% for item in all_tech %}
-			<td>{{ item.tech_name }}</td>
+            <td>{{ item.tech_name }}</td>
+			    {% if loop.index is divisibleby 10 %}
+			        </tr>
+			        <tr>
+			    {% endif %}
 			{% endfor %}
 		</tr>
 	</table>
@@ -119,15 +123,29 @@ hr {
             </td>
                 {% for tech_item in item.all_tech %}
                     {% if loop.first %}
+		    <td>
+		        <p>{{ tech_item.tech_name }}</p>
+		    </td>
+		    {% if tech_item.cve_list %}
+		        <td>
+		            {% for cve in tech_item.cve_list %}
+		                    <p>{{ cve.id }}</p>
+		            {% endfor %}
+		        </td>
+		    {% endif %}
+		</tr>
+	            {% else %}
+		<tr>
             <td>
                 <p>{{ tech_item.tech_name }}</p>
             </td>
-        </tr>
-                    {% else %}
-        <tr>
-            <td>
-                <p>{{ tech_item.tech_name }}</p>
-            </td>
+	    {% if tech_item.cve_list %}
+	        <td>
+	            {% for cve in tech_item.cve_list %}
+	                    <p>{{ cve.id }}</p>
+	            {% endfor %}
+	        </td>
+	    {% endif %}
         </tr>
                     {% endif %}
                 {% endfor %}

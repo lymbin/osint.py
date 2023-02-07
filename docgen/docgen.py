@@ -9,6 +9,9 @@ from jinja2 import Environment, FileSystemLoader
 """
 Changelog:
 
+-- 0.3 --
+Added saving CVE in report
+
 -- 0.2 --
 Moved to HTML Generation via jinja2
 
@@ -64,11 +67,19 @@ class Html:
         for domain in json['domains']:
             tech_domain = []
             for tech in domain['technologies']:
-                tech_domain.append(
-                    {
-                        'tech_name': '%s %s' % (tech['name'], tech['version'])
-                    }
-                )
+                if 'cve_list' not in tech:
+                    tech_domain.append(
+                        {
+                            'tech_name': '%s %s' % (tech['name'], tech['version'])
+                        }
+                    )
+                else:
+                    tech_domain.append(
+                        {
+                            'tech_name': '%s %s' % (tech['name'], tech['version']),
+                            'cve_list': tech['cve_list']
+                        }
+                    )
             subdomains.append(
                 {
                     'subdomain_name': domain['host'],
