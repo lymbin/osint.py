@@ -17,7 +17,7 @@ from helper.progress import Progress
 from helper import packages
 from docgen.docgen import Html
 
-version = '0.7'
+version = '0.7.1'
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -54,9 +54,9 @@ def get_parser() -> argparse.ArgumentParser:
 
 
 def main(parser) -> None:
-    print('---------------')
-    print(" osint.py v%s" % version)
-    print('---------------')
+    print('------------------------------')
+    print(" osint.py v%s by @lymbin" % version)
+    print('------------------------------')
 
     args = parser.parse_args()
 
@@ -69,12 +69,12 @@ def main(parser) -> None:
     if args.init:
         print('Initializing')
         packages.init(args.force)
-        print('\n---------------')
+        print('\n------------------------------')
 
     if args.update:
         print('Updating')
         packages.update()
-        print('---------------')
+        print('------------------------------')
 
     if not args.url:
         if args.update or args.init:
@@ -93,7 +93,8 @@ def main(parser) -> None:
             host.hostsearch(host.dns)
         else:
             host.hostsearch(results)
-        print('---------------')
+        print("Done")
+        print('------------------------------')
     else:
         host.hostsearch(host.dns)
 
@@ -102,7 +103,8 @@ def main(parser) -> None:
             print('Getting tech for %s' % hostname)
             results = Tech().analyze(hostname)
             host.info[hostname]['tech'] = results
-            print('---------------')
+            print("Done")
+            print('------------------------------')
         host.reformat_tech()
 
     if args.banner:
@@ -119,7 +121,8 @@ def main(parser) -> None:
             thread.join()
 
             host.info[hostname]['banner'] = results
-            print('\n---------------')
+            print("Done")
+            print('\n------------------------------')
 
     if args.all or args.search:
         if args.all or args.tech:
@@ -138,12 +141,15 @@ def main(parser) -> None:
                             if search_result:
                                 search_optimizer[search_optimizer_tech_version]['search'] = search_result
                                 tech[tec]['vulns'] = search_result
+                            print('---------------')
                         elif 'search' in search_optimizer[search_optimizer_tech_version]:
                             print('Results of cve-search for %s:%s found' % (tec, tech_ver))
                             tech[tec]['vulns'] = search_optimizer[search_optimizer_tech_version]['search']
+                            print('---------------')
         else:
             print('Search mode works only with Tech mode together')
-        print('---------------')
+        print("Done")
+        print('------------------------------')
 
     if args.all or args.exploit:
         print('Searching exploits')
@@ -170,7 +176,8 @@ def main(parser) -> None:
                 print(sploit.search(args.cve))
             else:
                 print('Wrong CVE format')
-        print('---------------')
+        print("Done")
+        print('------------------------------')
 
     host.generate_results()
     print('\nResults:')
