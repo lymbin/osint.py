@@ -53,7 +53,7 @@ class Tech:
 
         print('Using Wappalyzer')
         wappalyzer = Wappalyzer.latest()
-        webpage = WebPage.new_from_url(self.url)
+        webpage = WebPage.new_from_url(self.url, timeout=60)
         results = wappalyzer.analyze_with_versions_and_categories(webpage)
         return results
 
