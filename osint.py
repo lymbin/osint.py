@@ -16,7 +16,7 @@ from helper.host import Host
 from helper.progress import Progress
 from helper import packages
 from docgen.docgen import Html
-from email.email import Email
+from emails.emails import Email
 
 version = '0.8.dev'
 
