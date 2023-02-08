@@ -43,6 +43,6 @@ class Email:
         if not result:
             print('Nothing found')
         else:
-            print("Found %d Exploit(s)" % len(result))
+            print("Found %d Email(s)" % len(result))
 
         return result

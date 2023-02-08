@@ -71,7 +71,7 @@ class Host:
     def generate_results(self):
         for hostname in self.info:
             domain = {'host': hostname,
-                      'ip': self.info[hostname]['ip'],
+                      'ip': '',
                       'risk_level': {
                           'score': 100,
                           'level': 'Low'
@@ -86,7 +86,11 @@ class Host:
                       'technologies': [],
                       'cve_list': [],
                       }
-            self._fill_domain(domain, self.info[hostname]['tech'])
+            if 'ip' in self.info[hostname]:
+                domain['ip'] = self.info[hostname]['ip']
+
+            if 'tech' in self.info[hostname]:
+                self._fill_domain(domain, self.info[hostname]['tech'])
             self.json['domains'].append(domain)
 
             for cve in domain['cve_list']:

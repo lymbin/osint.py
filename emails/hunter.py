@@ -9,7 +9,7 @@ email_count = "email-count"
 
 class Hunter:
     def search(self, domain: str):
-        return email_count
+        return self.email_count(domain)
 
     def email_count(self, domain: str):
         params = {"domain": domain}
