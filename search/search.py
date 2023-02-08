@@ -6,9 +6,12 @@ import os
 import json
 from .setup import Configuration
 from .search_update import SearchUpdater
+from .search_optimizer import SearchOptimizer
 
 """
 Changelog:
+-- 0.4 --
+Optimize search implementation
 
 -- 0.3 --
 Implements new update method
@@ -21,7 +24,7 @@ Change default path of cve-search
 Initial release
 
 """
-version = '0.3'
+version = '0.4'
 cve_bin = os.path.join('bin', 'search.py')
 
 
@@ -30,6 +33,7 @@ class CveSearch:
         self.path = cve_search_path
 
     def search(self, cpe: str):
+        cpe = SearchOptimizer.optimize(cpe)
         if os.path.isabs(self.path):
             cve_search_bin = os.path.join(os.path.realpath(self.path), cve_bin)
         else:
