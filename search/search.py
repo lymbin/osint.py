@@ -33,7 +33,6 @@ class CveSearch:
         self.path = cve_search_path
 
     def search(self, cpe: str):
-        cpe = SearchOptimizer.optimize(cpe)
         if os.path.isabs(self.path):
             cve_search_bin = os.path.join(os.path.realpath(self.path), cve_bin)
         else:
@@ -53,10 +52,6 @@ class Search:
     """
     def __init__(self):
         self.config = Configuration()
-
-    @staticmethod
-    def normalize(package: str) -> str:
-        return package.lower()
 
     @staticmethod
     def parse(cve_search_result: str):
@@ -83,7 +78,8 @@ class Search:
         return result
 
     def search(self, package: str, ver: str):
-        cve_search_str = ("%s:%s" % (self.normalize(package), ver))
+        package = SearchOptimizer.optimize(package)
+        cve_search_str = ("%s:%s" % (package, ver))
         return self.cve_search(cve_search_str)
 
     @staticmethod

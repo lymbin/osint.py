@@ -16,8 +16,9 @@ from helper.host import Host
 from helper.progress import Progress
 from helper import packages
 from docgen.docgen import Html
+from email.email import Email
 
-version = '0.7.1'
+version = '0.8.dev'
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -31,6 +32,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument('--banner', action='store_true', help='Banner grabbing only')
     parser.add_argument('--search', action='store_true', help='CVE Search only')
     parser.add_argument('--exploit', action='store_true', help='Search Exploits only')
+    parser.add_argument('--email', action='store_true', help='Search Emails only')
 
     # searchsploit args
     parser.add_argument('--cve', type=str, help='CVE')
@@ -61,7 +63,7 @@ def main(parser) -> None:
     args = parser.parse_args()
 
     if not args.all and not args.dns and not args.tech and not args.banner and not args.search and not args.exploit \
-            and not args.init and not args.update:
+            and not args.init and not args.update and not args.email:
         print('No mode selected')
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -178,6 +180,13 @@ def main(parser) -> None:
                 print('Wrong CVE format')
         print("Done")
         print('------------------------------')
+
+    if args.all or args.email:
+        print('Searching emails')
+        emails = Email()
+        em = emails.search(host.target)
+        host.info['emails'] = {}
+        host.info['emails']['total'] = em['total']
 
     host.generate_results()
     print('\nResults:')

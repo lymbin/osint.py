@@ -104,8 +104,13 @@ class Html:
             'exploits_count': json['risks']['exploits'],
             'all_tech': all_tech,
             'subdomains': subdomains,
-            'image': ''
+            'image': '',
+            'emails_count': json['emails']['total']
         }
+        if len(json['cve_list']) > 0:
+            context['cve_found'] = 'true'
+        if json['emails']['total'] > 0:
+            context['email_found'] = 'true'
         if json['risks']['exploits'] > 0:
             context['exploits'] = 'true'
 

@@ -76,6 +76,9 @@ hr {
 				{% if exploits %}
 					<p>{{ exploits_count }} potential public exploits found</p>
 				{% endif %}
+                {% if email_found %}
+                    <p>{{ emails_count }} public email found</p>
+                {% endif %}
 			</td>
 			<td rowspan="0"><IMG src="{{ image }}"></td>
 		<tr class="critical">
@@ -126,26 +129,30 @@ hr {
 		    <td>
 		        <p>{{ tech_item.tech_name }}</p>
 		    </td>
-		    {% if tech_item.cve_list %}
-		        <td>
-		            {% for cve in tech_item.cve_list %}
-		                    <p>{{ cve.id }}</p>
-		            {% endfor %}
-		        </td>
-		    {% endif %}
+            {% if cve_found %}
+                <td>
+                {% if tech_item.cve_list %}
+                        {% for cve in tech_item.cve_list %}
+                                <p>{{ cve.id }}</p>
+                        {% endfor %}
+                {% endif %}
+                </td>
+            {% endif %}
 		</tr>
 	            {% else %}
 		<tr>
             <td>
                 <p>{{ tech_item.tech_name }}</p>
             </td>
-	    {% if tech_item.cve_list %}
-	        <td>
-	            {% for cve in tech_item.cve_list %}
-	                    <p>{{ cve.id }}</p>
-	            {% endfor %}
-	        </td>
-	    {% endif %}
+            {% if cve_found %}
+                <td>
+                {% if tech_item.cve_list %}
+                    {% for cve in tech_item.cve_list %}
+                            <p>{{ cve.id }}</p>
+                    {% endfor %}
+                {% endif %}
+                </td>
+            {% endif %}
         </tr>
                     {% endif %}
                 {% endfor %}
@@ -156,7 +163,12 @@ hr {
                 <p>{{ item.subdomain_risk }} Risk</p>
                 <p>{{ item.subdomain_ip }}</p>
             </td>
-            <td></td>
+            {% if cve_found %}
+                <td></td>
+            {% endif %}
+            {% if exploits %}
+                <td></td>
+            {% endif %}
         </tr>
             {% endif %}
         {% endfor %}

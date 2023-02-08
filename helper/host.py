@@ -34,7 +34,10 @@ class Host:
                      },
                      'technologies': [],
                      'cve_list': [],
-                     'domains': []
+                     'domains': [],
+                     'emails': {
+                         'total': 0
+                     }
                      }
         try:
             self.ip = socket.gethostbyname(self.target)
@@ -81,7 +84,7 @@ class Host:
                           'exploits': 0
                       },
                       'technologies': [],
-                      'cve_list': []
+                      'cve_list': [],
                       }
             self._fill_domain(domain, self.info[hostname]['tech'])
             self.json['domains'].append(domain)
@@ -95,6 +98,7 @@ class Host:
                 self.json['risks'][risk] += domain['risks'][risk]
 
         self.json['risk_level'] = self.calc_risk(self.json['risks'], self.json['risks']['exploits'])
+        self.json['emails'] = self.info['emails']
 
     # TODO: optimize later
     def _fill_domain(self, domain, tech):
